@@ -1,16 +1,4 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Center,
-  Flex,
-  HStack,
-  Heading,
-  Stack,
-  useColorMode,
-  useColorModeValue,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Avatar, Box, Button, Center, Flex, HStack, Heading, Stack, useColorMode, useColorModeValue, useDisclosure } from "@chakra-ui/react";
 import React from "react";
 import { MoonIcon, SunIcon } from "@chakra-ui/icons";
 import { Link, NavLink } from "react-router-dom";
@@ -27,15 +15,17 @@ const Header = () => {
             </Heading>
           </Link>
           <HStack gap={2}>
-            <NavLink to='/user'>User</NavLink>
-            <NavLink to='/post'>Post</NavLink>
-            <NavLink to='/analytics'>Analytics</NavLink>
+            <HStack gap={2}>
+              <NavLink to='/user'>User</NavLink>
+              <NavLink to='/post'>Post</NavLink>
+              <NavLink to='/analytics'>Analytics</NavLink>
+            </HStack>
+            <Flex alignItems={"center"}>
+              <Stack direction={"row"} spacing={5}>
+                <Button onClick={toggleColorMode}>{colorMode === "light" ? <MoonIcon /> : <SunIcon />}</Button>
+              </Stack>
+            </Flex>
           </HStack>
-          <Flex alignItems={"center"}>
-            <Stack direction={"row"} spacing={5}>
-              <Button onClick={toggleColorMode}>{colorMode === "light" ? <MoonIcon /> : <SunIcon />}</Button>
-            </Stack>
-          </Flex>
         </Flex>
       </Box>
     </>

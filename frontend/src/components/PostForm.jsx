@@ -59,11 +59,11 @@ const PostForm = () => {
       <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={8}>
         <form onChange={handleFormChange}>
           <Stack spacing={4}>
-            <FormControl id='postid'>
+            <FormControl id='post_id'>
               <FormLabel>Post ID</FormLabel>
               <Input type='text' required />
             </FormControl>
-            <FormControl id='userid'>
+            <FormControl id='user_id'>
               <FormLabel>User ID</FormLabel>
               <Input type='text' required />
             </FormControl>
