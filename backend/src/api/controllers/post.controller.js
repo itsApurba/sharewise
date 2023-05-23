@@ -14,6 +14,17 @@ exports.createPost = async (req, res) => {
   }
 };
 
+
+exports.getAllPosts = async (req, res) => {
+  try {
+    const posts = await Post.find();
+    res.send(posts);
+  } catch (error) {
+    logger.error(error);
+    res.send(error);
+  }
+}
+
 exports.getPost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
@@ -33,32 +44,53 @@ exports.updatePost = async (req, res) => {
 };
 
 exports.deletePost = async (req, res) => {
-  const deletedPost = await Post.findByIdAndDelete(req.params.id);
-  if (!deletedPost) return res.status(404).send("Post not found");
-  res.send(deletedPost);
+  try {
+    const deletedPost = await Post.findByIdAndDelete(req.params.id);
+    if (!deletedPost) return res.status(404).send("Post not found");
+    res.send(deletedPost);
+  } catch (error) {
+    res.send(error)
+  }
 };
 
 exports.likePost = async (req, res) => {
-  const updatedPost = await Post.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });
-  if (!updatedPost) return res.status(404).send("Post not found");
-  res.send(updatedPost);
+  try {
+    const updatedPost = await Post.findByIdAndUpdate(req.params.id, { $inc: { likes: 1 } }, { new: true });
+    if (!updatedPost) return res.status(httpStatus.NOT_FOUND).send("Post not found");
+    res.send(updatedPost);
+  } catch (error) {
+    res.send(error)
+  }
 };
 
 exports.unlikePost = async (req, res) => {
+  try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).send("Post not found");
+    if (post.likes == 0) return res.send(httpStatus.NOT_ACCEPTABLE);
+
     post.likes = Math.max(post.likes - 1, 0);
     await post.save();
     res.send(post);
+  } catch (error) {
+    res.send(error)
+  }
 }
 
 exports.totalPosts = async (req, res) => {
-  const postCount = await Post.countDocuments();
-  res.send({ total_posts: postCount });
+  try {
+    const postCount = await Post.countDocuments();
+    res.send({ total_posts: postCount });
+  } catch (error) {
+    res.send(error)
+  }
 };
 
-
 exports.topLikedPosts = async (req, res) => {
-  const topPosts = await Post.find().sort({ likes: -1 }).limit(5);
-  res.send(topPosts);
+  try {
+    const topPosts = await Post.find().sort({ likes: -1 }).limit(5);
+    res.send(topPosts);
+  } catch (error) {
+    res.send(error)
+  }
 };
