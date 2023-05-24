@@ -14,7 +14,6 @@ exports.createPost = async (req, res) => {
   }
 };
 
-
 exports.getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find();
@@ -23,22 +22,22 @@ exports.getAllPosts = async (req, res) => {
     logger.error(error);
     res.send(error);
   }
-}
+};
 
 exports.getPost = async (req, res) => {
-    try {
-        const post = await Post.findById(req.params.id);
-        if (!post) return res.status(404).send("Post not found");
-        res.send(post);
-    } catch (error) {
-        logger.error(error);
-        res.send(error)
-    }
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).send("Post not found");
+    res.send(post);
+  } catch (error) {
+    logger.error(error);
+    res.send(error);
+  }
 };
 
 exports.updatePost = async (req, res) => {
-    const content = req.body.content
-  const updatedPost = await Post.findByIdAndUpdate(req.params.id,{content: content} , { new: true });
+  const content = req.body.content;
+  const updatedPost = await Post.findByIdAndUpdate(req.params.id, { content: content }, { new: true });
   if (!updatedPost) return res.status(404).send("Post not found");
   res.send(updatedPost);
 };
@@ -49,7 +48,7 @@ exports.deletePost = async (req, res) => {
     if (!deletedPost) return res.status(404).send("Post not found");
     res.send(deletedPost);
   } catch (error) {
-    res.status(httpStatus.BAD_REQUEST).send(error)
+    res.status(httpStatus.BAD_REQUEST).send(error);
   }
 };
 
@@ -59,7 +58,7 @@ exports.likePost = async (req, res) => {
     if (!updatedPost) return res.status(httpStatus.NOT_FOUND).send("Post not found");
     res.send(updatedPost);
   } catch (error) {
-    res.send(error)
+    res.send(error);
   }
 };
 
@@ -73,24 +72,39 @@ exports.unlikePost = async (req, res) => {
     await post.save();
     res.send(post);
   } catch (error) {
-    res.send(error)
+    res.send(error);
   }
-}
+};
 
 exports.totalPosts = async (req, res) => {
   try {
     const postCount = await Post.countDocuments();
     res.send({ total_posts: postCount });
   } catch (error) {
-    res.send(error)
+    res.send(error);
   }
 };
 
 exports.topLikedPosts = async (req, res) => {
-  try {
-    const topPosts = await Post.find().sort({ likes: -1 }).limit(5);
-    res.send(topPosts);
-  } catch (error) {
-    res.send(error)
-  }
+ try {
+   const topPosts = await Post.aggregate([
+     { $sort: { likes: -1 } },
+     { $limit: 5 },
+     { $match: { user_id: { $exists: true, $ne: null, $type: "objectId" } } },
+     {
+       $lookup: {
+         from: "users",
+         localField: "user_id",
+         foreignField: "_id",
+         as: "user",
+       },
+     },
+     { $match: { user: { $ne: [] } } },
+     { $unwind: "$user" },
+     { $project: { _id: 0, post_id: "$_id", name: "$user.name", likes: "$likes" } },
+   ]);
+   res.send(topPosts);
+ } catch (error) {
+   res.send(error);
+ }
 };

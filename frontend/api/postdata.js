@@ -36,3 +36,13 @@ export const dislikePost = async (id) => {
   const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/posts/${id}/unlike`);
   return res.data;
 };
+
+export const getTotalPosts = async () => {
+  const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/posts`);
+  return res.data;
+}
+
+export const getTopPosts = async () => {
+  const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/posts/top-liked`);
+  return res.data;
+}

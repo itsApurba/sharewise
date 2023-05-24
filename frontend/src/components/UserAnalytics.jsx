@@ -21,7 +21,6 @@ import {
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getTopUsers, getTotalUsers } from "../../api/userdata";
-import TopUsersCard from "./TopUsersCard";
 
 const UserAnalytics = () => {
   const totalUsers = useQuery({

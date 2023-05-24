@@ -2,7 +2,6 @@ import { Center, Divider, Heading, Spinner, VStack, useDisclosure } from "@chakr
 import { getAllPosts } from "../../api/postdata";
 import PostCard from "./PostCard";
 import { useQuery } from "@tanstack/react-query";
-import { useRef } from "react";
 
 const PostsList = () => {
 
