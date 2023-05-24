@@ -18,7 +18,8 @@ const Header = () => {
             <HStack gap={2}>
               <NavLink to='/user'>User</NavLink>
               <NavLink to='/post'>Post</NavLink>
-              <NavLink to='/analytics'>Analytics</NavLink>
+              <NavLink to='/user-analytics'>User Analytics</NavLink>
+              <NavLink to='/post-analytics'>Post Analytics</NavLink>
             </HStack>
             <Flex alignItems={"center"}>
               <Stack direction={"row"} spacing={5}>
