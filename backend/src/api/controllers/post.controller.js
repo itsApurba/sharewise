@@ -49,7 +49,7 @@ exports.deletePost = async (req, res) => {
     if (!deletedPost) return res.status(404).send("Post not found");
     res.send(deletedPost);
   } catch (error) {
-    res.send(error)
+    res.status(httpStatus.BAD_REQUEST).send(error)
   }
 };
 
