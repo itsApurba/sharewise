@@ -14,20 +14,20 @@ import {
   ModalHeader,
   ModalOverlay,
   Skeleton,
-  Spinner,
+
   Text,
   Textarea,
   VStack,
   useDisclosure,
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { getUserByID } from "../../api/userdata";
 import { deletePostByID, dislikePost, likePost } from "../../api/postdata";
 import { toast } from "react-toastify";
 import { updatePostByID } from "../../api/postdata";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const PostCard = ({ post, isLoadingDelete }) => {
+const PostCard = ({ post }) => {
   const queryClient = useQueryClient()
   const user = useQuery({
     queryKey: ["user", post._id],
@@ -103,7 +103,7 @@ const PostCard = ({ post, isLoadingDelete }) => {
         <Text>{content}</Text>
         <HStack justify={"space-between"} w={"full"}>
           <Text>Likes: {likes}</Text>
-          {user.isLoading ? <Skeleton height='20px' width='100px' /> : <Text>By: {user.data?.name}</Text>}
+          {user.isLoading ? <Skeleton height='20px' width='100px' /> : <Text>By: {user.data?.name || "DeletedUser"}</Text>}
         </HStack>
         <HStack w='full' justify={"space-between"}>
           <ButtonGroup variant='outline' spacing='2'>
