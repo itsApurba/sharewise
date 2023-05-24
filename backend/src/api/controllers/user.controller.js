@@ -62,7 +62,7 @@ exports.deleteUser = async (req, res) => {
 
 exports.totalUsers = async (req, res) => {
   const userCount = await User.countDocuments();
-  res.send({ total_users: userCount });
+  res.send({ userCount });
 };
 
 exports.topActiveUsers = async (req, res) => {
@@ -72,7 +72,7 @@ exports.topActiveUsers = async (req, res) => {
     { $limit: 5 },
     { $lookup: { from: "users", localField: "_id", foreignField: "_id", as: "user" } },
     { $unwind: "$user" },
-    { $project: { _id: 0, user_id: "$_id", name: "$user.name", post_count: 1 } },
+    { $project: { _id: 0, user_id: "$_id", name: "$user.name", post_count: "$post_count" } },
   ]);
   res.send(topUsers);
 };
