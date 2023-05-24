@@ -24,3 +24,12 @@ export const deleteUserById = async (id) => {
   const res = await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/users/${id}`);
   return res.data;
 }
+
+export const getTotalUsers = async () => {
+  const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/users`);
+  return res.data;
+}
+export const getTopUsers = async () => {
+  const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/users/top-active`);
+  return res.data;
+}
