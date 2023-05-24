@@ -1,63 +1,48 @@
 import { Box, Button, Center, FormControl, FormLabel, Input, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { createPost, updatePostByID } from "../../api/postdata";
+import { useMutation } from "@tanstack/react-query";
 
 const PostForm = () => {
-  const [postData, setPostData] = useState({
+  const formRef = useRef(null);
+  const [formData, setFormData] = useState({
     userid: "",
     postid: "",
-    content: "",
-    isCreating: false,
-    isUpdating: false,
+    content: ""
+  });
+
+  const createPostMutation = useMutation({
+    mutationFn: createPost,
+  });
+  const updatePostMutation = useMutation({
+    mutationFn: updatePostByID,
   });
 
   const handleFormChange = (e) => {
-    setPostData({
-      ...postData,
+    setFormData({
+      ...formData,
       [e.target.id]: e.target.value,
     });
   };
   const handleCreatePost = () => {
-    setPostData({
-      ...postData,
-      isCreating: true,
+    createPostMutation.mutate(formData, {
+      onSuccess: () => {
+        formRef.current.reset();
+      },
     });
-    createPost(postData)
-      .then((res) => {
-        setPostData({
-          ...postData,
-        });
-      })
-      .finally(() => {
-        setPostData({
-          ...postData,
-          isCreating: false,
-        });
-      });
   };
 
   const handleUpdatePost = () => {
-    setPostData({
-      ...postData,
-      isUpdating: true,
+    updatePostMutation.mutate(formData, {
+      onSuccess: () => {
+        formRef.current.reset();
+      },
     });
-    updatePostByID(postData)
-      .then((res) => {
-        setPostData({
-          ...postData,
-        });
-      })
-      .finally(() => {
-        setPostData({
-          ...postData,
-          isUpdating: false,
-        });
-      });
   };
   return (
     <Center w={"full"} h={"100vh"} bg={useColorModeValue("gray.50", "gray.800")}>
       <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={8}>
-        <form onChange={handleFormChange}>
+        <form ref={formRef} onChange={handleFormChange}>
           <Stack spacing={4}>
             <FormControl id='post_id'>
               <FormLabel>Post ID</FormLabel>
@@ -79,7 +64,7 @@ const PostForm = () => {
                   bg: "blue.500",
                 }}
                 onClick={handleCreatePost}
-                isLoading={postData.isCreating}
+                isLoading={createPostMutation.isLoading}
               >
                 Create Post
               </Button>
@@ -90,7 +75,7 @@ const PostForm = () => {
                   bg: "blue.400",
                 }}
                 onClick={handleUpdatePost}
-                isLoading={postData.isUpdating}
+                isLoading={updatePostMutation.isLoading}
               >
                 Update Post
               </Button>
