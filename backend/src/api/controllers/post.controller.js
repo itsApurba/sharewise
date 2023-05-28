@@ -4,13 +4,14 @@ const logger = require("../../config/logger");
 
 exports.createPost = async (req, res) => {
   try {
+    console.log(req.body)
     const post = new Post(req.body);
     const savedPost = await post.save();
     res.status(httpStatus.CREATED);
     res.json(savedPost);
   } catch (error) {
+    res.status(httpStatus.BAD_REQUEST).send(error);
     logger.error(error);
-    res.send(error);
   }
 };
 

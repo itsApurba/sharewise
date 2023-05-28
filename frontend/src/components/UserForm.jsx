@@ -1,6 +1,7 @@
-import { Box, Button, Center, Checkbox, FormControl, FormLabel, Input, Link, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
+import { Box, Button, Center, Checkbox, Divider, FormControl, FormLabel, Heading, Input, Link, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { createUser, updateUserByID } from "../../api/userdata";
+import { toast } from "react-toastify";
 
 const UserForm = () => {
   const [userData, setUserData] = useState({
@@ -30,6 +31,7 @@ const UserForm = () => {
         setUserData({
           ...userData,
         });
+        toast.success("User created successfully");
       })
       .finally(() => {
         setUserData({
@@ -59,14 +61,16 @@ const UserForm = () => {
   };
 
   return (
-    <Center w={"full"} h={"100vh"} bg={useColorModeValue("gray.50", "gray.800")}>
+    <Center w={"full"} bg={useColorModeValue("gray.50", "gray.800")}>
       <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={8}>
+        <Heading fontSize={"2xl"}>Create / Update user</Heading>
+        <Divider py={2} />
         <form onChange={handleFormChange}>
           <Stack spacing={4}>
-            <FormControl id='id'>
+            {/* <FormControl id='id'>
               <FormLabel>ID</FormLabel>
               <Input type='text' />
-            </FormControl>
+            </FormControl> */}
             <FormControl id='name'>
               <FormLabel>Name</FormLabel>
               <Input type='text' />
@@ -91,7 +95,7 @@ const UserForm = () => {
               >
                 Create User
               </Button>
-              <Button
+              {/* <Button
                 isLoading={userData.isUpdating}
                 variant='outline'
                 color={"white"}
@@ -101,7 +105,7 @@ const UserForm = () => {
                 onClick={handleUpdateUser}
               >
                 Update User
-              </Button>
+              </Button> */}
             </Stack>
           </Stack>
         </form>

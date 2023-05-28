@@ -1,7 +1,8 @@
-import { Box, Button, Center, FormControl, FormLabel, Input, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
+import { Box, Button, Center, Divider, FormControl, FormLabel, Heading, Input, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
 import React, { useRef, useState } from "react";
 import { createPost, updatePostByID } from "../../api/postdata";
 import { useMutation } from "@tanstack/react-query";
+import { toast } from "react-toastify";
 
 const PostForm = () => {
   const formRef = useRef(null);
@@ -13,6 +14,10 @@ const PostForm = () => {
 
   const createPostMutation = useMutation({
     mutationFn: createPost,
+  }, {
+    onSuccess: () => {
+      
+    },
   });
   const updatePostMutation = useMutation({
     mutationFn: updatePostByID,
@@ -27,27 +32,33 @@ const PostForm = () => {
   const handleCreatePost = () => {
     createPostMutation.mutate(formData, {
       onSuccess: () => {
+        toast.success("Post created successfully");
         formRef.current.reset();
       },
+      onError: (err) => {
+        toast.error("Something went wrong");
+      }
     });
   };
 
-  const handleUpdatePost = () => {
-    updatePostMutation.mutate(formData, {
-      onSuccess: () => {
-        formRef.current.reset();
-      },
-    });
-  };
+  // const handleUpdatePost = () => {
+  //   updatePostMutation.mutate(formData, {
+  //     onSuccess: () => {
+  //       formRef.current.reset();
+  //     },
+  //   });
+  // };
   return (
-    <Center w={"full"} h={"100vh"} bg={useColorModeValue("gray.50", "gray.800")}>
+    <Center w={"full"} bg={useColorModeValue("gray.50", "gray.800")}>
       <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={8}>
         <form ref={formRef} onChange={handleFormChange}>
+          <Heading fontSize={"2xl"}>Create / Update Posts</Heading>
+          <Divider py={2} />
           <Stack spacing={4}>
-            <FormControl id='post_id'>
+            {/* <FormControl id='post_id'>
               <FormLabel>Post ID</FormLabel>
               <Input type='text' required />
-            </FormControl>
+            </FormControl> */}
             <FormControl id='user_id'>
               <FormLabel>User ID</FormLabel>
               <Input type='text' required />
@@ -68,7 +79,7 @@ const PostForm = () => {
               >
                 Create Post
               </Button>
-              <Button
+              {/* <Button
                 variant='outline'
                 color={useColorModeValue("blackAlpha.900", "white")}
                 _hover={{
@@ -78,7 +89,7 @@ const PostForm = () => {
                 isLoading={updatePostMutation.isLoading}
               >
                 Update Post
-              </Button>
+              </Button> */}
             </Stack>
           </Stack>
         </form>

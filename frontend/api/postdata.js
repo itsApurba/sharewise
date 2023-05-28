@@ -11,9 +11,12 @@ export const getPostById = async (id) => {
 };
 
 export const createPost = async (postData) => {
-  console.log(postData);
-  const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/posts`, postData);
-  return res.data;
+  try {
+    const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/posts`, postData);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const updatePostByID = async ({ id, content }) => {
@@ -40,9 +43,9 @@ export const dislikePost = async (id) => {
 export const getTotalPosts = async () => {
   const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/posts`);
   return res.data;
-}
+};
 
 export const getTopPosts = async () => {
   const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/analytics/posts/top-liked`);
   return res.data;
-}
+};

@@ -16,8 +16,8 @@ const Header = () => {
           </Link>
           <HStack gap={2}>
             <HStack gap={2}>
-              <NavLink to='/user'>User</NavLink>
-              <NavLink to='/post'>Post</NavLink>
+              <NavLink to='/create'>Create</NavLink>
+              <NavLink to='/users'>Users</NavLink>
               <NavLink to='/user-analytics'>User Analytics</NavLink>
               <NavLink to='/post-analytics'>Post Analytics</NavLink>
             </HStack>
