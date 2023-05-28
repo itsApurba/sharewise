@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "nodemon ./src/index.js",
     "test": "jest --forceExit",
-    "start": "node ./src/index.js",
-    "stop": "pm2 stop ./src/index.js"
+    "start": "node ./src/index.js"
   },
   "keywords": [],
   "author": "",
