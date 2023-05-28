@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon ./src/index.js",
     "test": "jest --forceExit",
-    "start": "cross-env NODE_ENV=production pm2 start ./src/index.js",
+    "start": "nodemon ./src/index.js",
     "stop": "pm2 stop ./src/index.js"
   },
   "keywords": [],
