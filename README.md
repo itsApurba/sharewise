@@ -14,8 +14,6 @@ The project is built using the following technologies:
 
 The project is still under development, but it is already functional and can be used to create a simple social media platform.
 
-Sure, here is the completed Features section for your GitHub README file:
-
 ## Features
 
 This project has the following features:
