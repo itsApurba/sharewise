@@ -9,8 +9,8 @@ const UsersList = () => {
     queryFn: getAllUsers,
   });
   return (
-    <Center maxW={"container.sm"}>
-      <VStack>
+    <Center maxW={"container.lg"}>
+      <VStack w={"60vw"} className='userlist_vstack'>
         <Heading>Users</Heading>
         <Divider />
 

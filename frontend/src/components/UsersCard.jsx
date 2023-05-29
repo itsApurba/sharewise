@@ -73,7 +73,7 @@ const UsersCard = ({ data }) => {
   };
 
   return (
-    <VStack w={"max-content"} maxW={"container.sm"}>
+    <VStack className="usercard outer" w={"max-content"} width={"full"}>
       <HStack w={"full"} justify={"space-between"}>
         <HStack>
           <Avatar size={"md"} />
