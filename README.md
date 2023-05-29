@@ -23,8 +23,6 @@ This project has the following features:
 * **"Like" and "unlike" posts.** Users can "like" and "unlike" posts. The number of likes for each post is displayed.
 * **View analytics on user engagement and content popularity.** The analytics pages display insights on user engagement and content popularity. This includes information such as the total number of users, the top 5 most active users, the total number of posts, the top 5 most liked posts, and so on.
 
-Sure, here is the completed Installation section for your GitHub README file:
-
 ## Installation
 
 To install this project, you will need the following:
@@ -71,7 +69,6 @@ The project frontend will be started on port 5173. You can access it by opening 
 
 And for the backend you have specify the PORT number in .env file
 
-Sure, here is the completed Usage section for your GitHub README file:
 
 ## Usage
 
@@ -80,9 +77,7 @@ To check this project, you don't need to create an account. You can start creati
 ## Todos
 
 - [x]  Add Dark mode.
-- [ ]  Use Zustand to manage the state.
-- [ ]  Use some hooks.
-- [ ]  Add and optimize the routes.
+- [x]  Add and optimize the routes.
 - [ ]  Fix the network cache.
 - [ ]  Fix the UserForm and PostForm UI and Implemnt the routing or models.
 - [ ]  Write the testcases.
