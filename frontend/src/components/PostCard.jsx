@@ -1,131 +1,107 @@
-import {
-  Button,
-  CloseButton,
-  ButtonGroup,
-  Dialog,
-  Field,
-  HStack,
-  Portal,
-  Separator,
-  Skeleton,
-  Text,
-  Textarea,
-  VStack,
-  useDisclosure,
-} from "@chakra-ui/react";
-import { useRef, useState } from "react";
+import { Button, CloseButton, Dialog, Field, HStack, IconButton, Menu, Portal, Text, Textarea, useDisclosure } from "@chakra-ui/react";
+import { useState } from "react";
+import { LuEllipsis, LuPencil, LuThumbsDown, LuThumbsUp, LuTrash2 } from "react-icons/lu";
 import { getUserByID } from "../../api/userdata";
 import { deletePostByID, dislikePost, likePost } from "../../api/postdata";
 import { toaster } from "./ui/toaster";
 import { updatePostByID } from "../../api/postdata";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import LessonCard from "./ds/LessonCard";
+
+const errorTitle = (err) => (typeof err.response?.data === "string" && err.response.data) || "Something went wrong";
 
 const PostCard = ({ post }) => {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const user = useQuery({
-    queryKey: ["user", post._id],
+    queryKey: ["user", post.user_id],
     queryFn: () => getUserByID(post.user_id),
   });
-  const initialRef = useRef(null);
   const { open, onOpen, onClose } = useDisclosure();
   const [likes, setLikes] = useState(post.likes);
   const [content, setContent] = useState(post.content);
+  const [draft, setDraft] = useState(post.content);
 
-  const likeMutation = useMutation({
-    mutationFn: likePost,
-    onError: (err) => {
-      toaster.error({ title: err.response.data });
-    },
-  });
-  const dislikeMutation = useMutation({
-    mutationFn: dislikePost,
-    onError: (err) => {
-      toaster.error({ title: err.response.data });
-    },
-  });
-  const editMutation = useMutation({
-    mutationFn: updatePostByID,
-    onSuccess: () => {
-      onClose();
-    },
-    onError: (err) => {
-      toaster.error({ title: err.response.data });
-    },
-  })
+  const onError = (err) => toaster.error({ title: errorTitle(err) });
+  const likeMutation = useMutation({ mutationFn: likePost, onError });
+  const dislikeMutation = useMutation({ mutationFn: dislikePost, onError });
+  const editMutation = useMutation({ mutationFn: updatePostByID, onError });
+  const deleteMutation = useMutation({ mutationFn: deletePostByID, onError });
 
-  const deleteMutation = useMutation({
-    mutationFn: deletePostByID,
-    onError: (err) => {
-      toaster.error({ title: err.response.data });
-    },
-  })
-
-  const handleLike = () => {
-    likeMutation.mutate(post._id, {
-      onSuccess: () => {
-        setLikes(likes + 1);
+  const handleLike = () => likeMutation.mutate(post._id, { onSuccess: () => setLikes((n) => n + 1) });
+  const handleDislike = () => dislikeMutation.mutate(post._id, { onSuccess: () => setLikes((n) => n - 1) });
+  const handleEdit = () =>
+    editMutation.mutate(
+      { id: post._id, content: draft },
+      {
+        onSuccess: () => {
+          setContent(draft);
+          onClose();
+        },
       },
-    });
-  };
-  const handleDislike = () => {
-    dislikeMutation.mutate(post._id, {
-      onSuccess: () => {
-        setLikes(likes - 1);
-      },
-    });
-  };
-  const handleEdit = () => {
-    editMutation.mutate({
-      id: post._id,
-      content,
-    })
-  };
-
+    );
   const handleClose = () => {
     onClose();
-    setContent(post.content);
+    setDraft(content);
   };
-
-  const handleDelete = () => {
-    deleteMutation.mutate(post._id,{
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["posts"] });
-      }
+  const handleDelete = () =>
+    deleteMutation.mutate(post._id, {
+      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }),
     });
-  }
+
+  const author = user.isLoading ? { name: "Loading…" } : { name: user.data?.name || "Deleted user" };
+  const createdLabel = post.created_at ? new Date(post.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : undefined;
 
   return (
     <>
-      <VStack align={"flex-start"} w={"90vw"} maxW={'container.sm'}>
-        <Text>{content}</Text>
-        <HStack justify={"space-between"} w={"full"}>
-          <Text>Likes: {likes}</Text>
-          {user.isLoading ? <Skeleton height='20px' width='100px' /> : <Text>By: {user.data?.name || "DeletedUser"}</Text>}
-        </HStack>
-        <HStack w='full' justify={"space-between"}>
-          <ButtonGroup variant='outline' gap='2'>
-            <Button loading={likeMutation.isPending} onClick={handleLike}>
-              Like
-            </Button>
-            <Button loading={dislikeMutation.isPending} onClick={handleDislike}>
-              Dislike
-            </Button>
-          </ButtonGroup>
-          <ButtonGroup variant='outline' gap='2'>
-            <Button onClick={onOpen}>Edit</Button>
-            <Button loading={deleteMutation.isPending} colorPalette='red' onClick={() => handleDelete(post._id)}>
-              Delete
-            </Button>
-          </ButtonGroup>
-        </HStack>
-      </VStack>
-      <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
+      <LessonCard
+        lesson={{ body: content, author, createdLabel }}
+        headerAction={
+          <Menu.Root positioning={{ placement: "bottom-end" }}>
+            <Menu.Trigger asChild>
+              <IconButton variant='ghost' colorPalette='gray' size='sm' aria-label='Post options' loading={deleteMutation.isPending}>
+                <LuEllipsis />
+              </IconButton>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content>
+                  <Menu.Item value='edit' onClick={onOpen}>
+                    <LuPencil />
+                    Edit
+                  </Menu.Item>
+                  <Menu.Item value='delete' color='fg.error' _hover={{ bg: "bg.error", color: "fg.error" }} onClick={handleDelete}>
+                    <LuTrash2 />
+                    Delete
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        }
+        footer={
+          <HStack justify='space-between' pt='1' gap='2'>
+            <HStack gap='2'>
+              <Button size='sm' variant='outline' rounded='full' loading={likeMutation.isPending} onClick={handleLike}>
+                <LuThumbsUp />
+                Like
+              </Button>
+              <IconButton size='sm' variant='ghost' colorPalette='gray' rounded='full' aria-label='Unlike' loading={dislikeMutation.isPending} onClick={handleDislike}>
+                <LuThumbsDown />
+              </IconButton>
+            </HStack>
+            <Text fontSize='sm' color='fg.muted'>
+              {likes} {likes === 1 ? "like" : "likes"}
+            </Text>
+          </HStack>
+        }
+      />
+      <Dialog.Root open={open} onOpenChange={(e) => !e.open && handleClose()} placement='center'>
         <Portal>
           <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content>
+          <Dialog.Positioner px='4'>
+            <Dialog.Content rounded='card'>
               <Dialog.Header>
-                <Dialog.Title>Edit Post</Dialog.Title>
+                <Dialog.Title fontFamily='heading'>Edit post</Dialog.Title>
               </Dialog.Header>
               <Dialog.CloseTrigger asChild>
                 <CloseButton size='sm' />
@@ -133,15 +109,14 @@ const PostCard = ({ post }) => {
               <Dialog.Body>
                 <Field.Root>
                   <Field.Label>Content</Field.Label>
-                  <Textarea ref={initialRef} placeholder='First name' value={content} onChange={(e) => setContent(e.target.value)} />
+                  <Textarea rows={4} value={draft} onChange={(e) => setDraft(e.target.value)} />
                 </Field.Root>
               </Dialog.Body>
-
               <Dialog.Footer>
-                <Button colorPalette='blue' mr={3} onClick={handleClose}>
-                  Close
+                <Button variant='ghost' colorPalette='gray' onClick={handleClose}>
+                  Cancel
                 </Button>
-                <Button loading={editMutation.isPending} variant='ghost' onClick={handleEdit}>
+                <Button loading={editMutation.isPending} onClick={handleEdit}>
                   Save
                 </Button>
               </Dialog.Footer>
@@ -149,7 +124,6 @@ const PostCard = ({ post }) => {
           </Dialog.Positioner>
         </Portal>
       </Dialog.Root>
-      <Separator w='full' />
     </>
   );
 };
