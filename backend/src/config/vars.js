@@ -13,7 +13,8 @@ module.exports = {
   env: process.env.NODE_ENV,
   port: process.env.PORT,
   jwtSecret: process.env.JWT_SECRET,
-  jwtExpirationInterval: process.env.JWT_EXPIRATION_MINUTES,
+  // Session tokens last a week unless JWT_EXPIRATION_MINUTES says otherwise.
+  jwtExpirationMinutes: Number(process.env.JWT_EXPIRATION_MINUTES) || 7 * 24 * 60,
   mongo: {
     uri: process.env.MONGO_URI,
   },
