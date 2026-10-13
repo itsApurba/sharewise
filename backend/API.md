@@ -136,7 +136,7 @@ the remember and answer routes return the card without it.
 | `email` | required, a valid address; stored lowercase; unique; cannot be changed later |
 | `password` | required, 8-72 characters; stored as a bcrypt hash |
 | `bio` | optional, at most 200 characters (the same limit everywhere) |
-| `timezone` | optional IANA name, default `UTC`; drives due dates and streak days |
+| `timezone` | optional IANA name, default `UTC`; drives due dates and streak days. Matched case-insensitively and stored with its IANA spelling (`asia/kolkata` is stored as `Asia/Kolkata`); UTC offsets such as `+01:00` and unknown names are a `400` |
 
 `201 { "token": "…", "user": Me }`. Errors: `400` with every invalid field in `fields`; `409 DUPLICATE` when the email or handle is taken.
 
