@@ -64,6 +64,8 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
   const [tally, setTally] = useState({ got: 0, forgot: 0 });
   const total = items.length;
   const current = items[index];
+  // Progress counts cards answered this session against the total at its start.
+  const reviewed = Math.min(tally.got + tally.forgot, total);
 
   const answer = async (body) => {
     const outcome = await answerReview.mutateAsync({ id: current.id, ...body });
@@ -77,7 +79,7 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
         <Stack gap='2' mb='5'>
           <HStack justify='space-between' fontSize='sm' color='fg.muted'>
             <Text>
-              {Math.min(index, total)} of {total} reviewed
+              {reviewed} of {total} reviewed
             </Text>
             {tally.got + tally.forgot > 0 && (
               <Text>
@@ -85,7 +87,7 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
               </Text>
             )}
           </HStack>
-          <Progress.Root value={(Math.min(index, total) / total) * 100} size='sm' colorPalette='sage' rounded='full' aria-label='Review progress'>
+          <Progress.Root value={(reviewed / total) * 100} size='sm' colorPalette='sage' rounded='full' aria-label='Review progress'>
             <Progress.Track rounded='full'>
               <Progress.Range />
             </Progress.Track>
