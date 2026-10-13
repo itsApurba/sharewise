@@ -1,9 +1,9 @@
 import { Box, Button, Field, HStack, IconButton, Input, NativeSelect, Stack, Switch, Tag, Text, Textarea, Wrap } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { LuCheck, LuEye, LuEyeOff, LuPlus, LuX } from "react-icons/lu";
 import LessonCard from "../ds/LessonCard";
 import Surface from "../ds/Surface";
-import { LANGUAGES, LIMITS, parseTags, previewLesson, validate } from "./lessonForm";
+import { LANGUAGES, LIMITS, clearDraft, emptyForm, loadDraft, parseTags, previewLesson, saveDraft, validate } from "./lessonForm";
 
 const Optional = () => (
   <Text as='span' color='fg.muted' fontWeight='normal'>
@@ -21,9 +21,22 @@ const Counter = ({ value, max }) => (
  * The lesson form: title, body, optional code snippet, link and tags, and an optional quiz
  * (free-text answer or 2-4 choices with one marked correct). Errors show after the first
  * submit and then update live. `serverErrors` are the API's `fields`, keyed the same way.
+ * With `draftKey`, the unsent form is kept in this browser and restored on the next visit.
  */
-const LessonComposer = ({ initial, author, submitLabel, submitting, serverErrors = {}, onSubmit, onCancel }) => {
-  const [form, setForm] = useState(initial);
+const LessonComposer = ({ initial, author, submitLabel, submitting, serverErrors = {}, onSubmit, onCancel, draftKey }) => {
+  const [restored] = useState(() => (draftKey ? loadDraft(draftKey) : null));
+  const [form, setForm] = useState(restored ?? initial);
+  const [showRestored, setShowRestored] = useState(Boolean(restored));
+
+  useEffect(() => {
+    if (draftKey) saveDraft(draftKey, form);
+  }, [draftKey, form]);
+
+  const discardDraft = () => {
+    clearDraft(draftKey);
+    setForm(emptyForm());
+    setShowRestored(false);
+  };
   const [attempted, setAttempted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [dirtySinceServer, setDirtySinceServer] = useState({});
@@ -62,6 +75,14 @@ const LessonComposer = ({ initial, author, submitLabel, submitting, serverErrors
     <Stack gap='5'>
       <Surface as='form' onSubmit={submit} noValidate>
         <Stack gap='5'>
+          {showRestored && (
+            <HStack justify='space-between' gap='3' px='3' py='2' rounded='control' bg='bg.subtle' fontSize='sm' wrap='wrap'>
+              <Text color='fg.muted'>Your unsent draft is back.</Text>
+              <Button size='xs' variant='ghost' colorPalette='gray' rounded='full' onClick={discardDraft}>
+                Start over
+              </Button>
+            </HStack>
+          )}
           <Field.Root invalid={Boolean(errorFor("title"))} required>
             <Field.Label>Title</Field.Label>
             <Input value={form.title} onChange={(e) => set({ title: e.target.value })} maxLength={LIMITS.title[1]} placeholder='e.g. Array.at() reads from the end' />

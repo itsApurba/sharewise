@@ -7,7 +7,7 @@ import EmptyState from "../components/ds/EmptyState";
 import { LessonCardSkeleton } from "../components/ds/LessonCard";
 import { PageContainer, PageHeader } from "../components/ds/Page";
 import LessonComposer from "../components/lessons/LessonComposer";
-import { changedFields, emptyForm, formFromLesson, toPayload } from "../components/lessons/lessonForm";
+import { changedFields, clearDraft, emptyForm, formFromLesson, toPayload } from "../components/lessons/lessonForm";
 import { toaster } from "../components/ui/toaster";
 import { useMe } from "../hooks/useAuth";
 import { useCreateLesson, useLesson, useUpdateLesson } from "../hooks/useLessons";
@@ -48,7 +48,9 @@ export const NewLessonPage = () => {
   const navigate = useNavigate();
   const { data: me, isPending } = useMe();
   const create = useCreateLesson();
+  const draftKey = me ? `sharewise.draft.${me.handle}` : undefined;
   const { submit, serverErrors } = useSubmitter(create, (lesson) => {
+    clearDraft(draftKey);
     toaster.success({ title: "Lesson published", description: "It is in your followers' feeds and on Explore." });
     navigate(`/lesson/${lesson.id}`);
   });
@@ -65,6 +67,7 @@ export const NewLessonPage = () => {
           initial={emptyForm()}
           author={me}
           submitLabel='Publish lesson'
+          draftKey={draftKey}
           submitting={create.isPending}
           serverErrors={serverErrors}
           onSubmit={(form) => submit(toPayload(form))}

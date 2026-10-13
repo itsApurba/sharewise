@@ -133,3 +133,31 @@ export const previewLesson = (form, author) => {
     createdLabel: "just now",
   };
 };
+
+// Unsent composer drafts live in this browser only (a per-viewer convenience), so storage may fail quietly.
+export const loadDraft = (key) => {
+  try {
+    const saved = key && JSON.parse(localStorage.getItem(key));
+    return saved && typeof saved === "object" ? { ...emptyForm(), ...saved } : null;
+  } catch {
+    return null;
+  }
+};
+
+export const saveDraft = (key, form) => {
+  try {
+    const empty = JSON.stringify(form) === JSON.stringify(emptyForm());
+    if (empty) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(form));
+  } catch {
+    // Storage blocked: the draft lasts until reload.
+  }
+};
+
+export const clearDraft = (key) => {
+  try {
+    localStorage.removeItem(key);
+  } catch {
+    // Nothing to clear.
+  }
+};

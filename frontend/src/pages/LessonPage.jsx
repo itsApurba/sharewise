@@ -1,6 +1,6 @@
 import { Box, Button, HStack, Input, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuBookmarkPlus, LuCheck, LuCircleCheck, LuCircleX, LuRefreshCw, LuSearchX } from "react-icons/lu";
+import { LuBookmarkPlus, LuCheck, LuCircleCheck, LuCircleX, LuRefreshCw, LuSearchX, LuShare2 } from "react-icons/lu";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { errorMessage } from "../api/client";
 import EmptyState from "../components/ds/EmptyState";
@@ -10,6 +10,7 @@ import QuizChoices from "../components/ds/QuizChoices";
 import Surface from "../components/ds/Surface";
 import LessonItem from "../components/lessons/LessonItem";
 import useRememberToggle from "../components/lessons/useRememberToggle";
+import { toaster } from "../components/ui/toaster";
 import { useAnswerQuiz, useLesson } from "../hooks/useLessons";
 
 /** The verdict line under an answered quiz, with a nudge to remember the lesson. */
@@ -130,6 +131,33 @@ const LessonQuiz = ({ lesson }) => {
   );
 };
 
+/** Native share sheet where there is one (phones), otherwise copy the link. */
+const ShareButton = ({ lesson }) => {
+  const share = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: lesson.title, text: `${lesson.title} · a lesson on Sharewise`, url });
+      } catch {
+        // Dismissed share sheet.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      toaster.success({ title: "Link copied", description: "Send it to someone who should remember this too." });
+    } catch {
+      toaster.error({ title: "Could not copy the link", description: url });
+    }
+  };
+  return (
+    <Button size='sm' variant='outline' colorPalette='gray' rounded='full' onClick={share}>
+      <LuShare2 />
+      Share
+    </Button>
+  );
+};
+
 const LessonPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -138,7 +166,7 @@ const LessonPage = () => {
 
   return (
     <PageContainer>
-      <PageHeader title='Lesson' backTo='/explore' backLabel='Explore' />
+      <PageHeader title='Lesson' backTo='/explore' backLabel='Explore' actions={lesson && <ShareButton lesson={lesson} />} />
       {isPending ? (
         <LessonCardSkeleton />
       ) : isError ? (

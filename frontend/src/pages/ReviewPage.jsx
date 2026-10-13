@@ -90,6 +90,9 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
               <Progress.Range />
             </Progress.Track>
           </Progress.Root>
+          <Text fontSize='xs' color='fg.muted' display={{ base: "none", md: "block" }}>
+            Keys: Space shows the lesson · G got it · F forgot · A-D pick a choice · Enter next
+          </Text>
         </Stack>
       )}
       {current ? (
@@ -99,6 +102,7 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
           stepLabel={`Card ${index + 1} of ${total}`}
           onAnswer={answer}
           timeZone={me?.timezone}
+          shortcuts
           onContinue={() => setIndex(index + 1)}
           continueLabel={index + 1 < total ? "Next card" : "Finish"}
         />

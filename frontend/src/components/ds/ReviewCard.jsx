@@ -1,5 +1,5 @@
 import { Box, Button, HStack, Heading, Icon, Input, Skeleton, SkeletonText, Stack, Text } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LuArrowRight, LuCalendarClock, LuCheck, LuEye, LuRotateCcw } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { errorMessage } from "../../api/client";
@@ -21,9 +21,10 @@ const stateOf = (outcome) => {
  * by revealing it and grading "Got it" or "Forgot". Every answer goes to `onAnswer(body)`,
  * which resolves to the API's `{ review, result }`; the card then reveals the lesson, the
  * right answer and when it comes back (dated in `timeZone`, the user's zone). `onContinue`
- * adds a button after the result.
+ * adds a button after the result. `shortcuts` turns on keys for a focused session:
+ * Space shows the lesson, F / G grade forgot / got it, A-D pick a choice, Enter continues.
  */
-const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "Next", timeZone }) => {
+const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "Next", timeZone, shortcuts = false }) => {
   const { lesson } = review;
   const { title, body, code, quiz, author } = lesson;
   const [revealed, setRevealed] = useState(false);
@@ -60,6 +61,39 @@ const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "
   };
 
   const correctAnswer = outcome?.result.correctAnswer;
+
+  // The latest handlers for the key listener, so it is attached once per card.
+  const keys = useRef(null);
+  useEffect(() => {
+    keys.current = (event) => {
+      if (event.target.closest?.("input, textarea, select, [contenteditable=true]") || event.metaKey || event.ctrlKey || event.altKey) return;
+      const key = event.key.toLowerCase();
+      if (answered) {
+        if (key === "enter" && onContinue) {
+          event.preventDefault();
+          onContinue();
+        }
+        return;
+      }
+      if (submitting) return;
+      if (quiz?.kind === "choice") {
+        const index = "abcd".indexOf(key) >= 0 ? "abcd".indexOf(key) : "1234".indexOf(key);
+        if (index >= 0 && index < quiz.choices.length) pick(index);
+      } else if (!quiz) {
+        if (!revealed && (key === " " || key === "enter")) {
+          event.preventDefault();
+          setRevealed(true);
+        } else if (revealed && key === "f") submit({ grade: "forgot" });
+        else if (revealed && key === "g") submit({ grade: "got" });
+      }
+    };
+  });
+  useEffect(() => {
+    if (!shortcuts) return undefined;
+    const onKey = (event) => keys.current?.(event);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shortcuts]);
 
   return (
     <Surface as='article' borderTopWidth='4px' borderTopColor={`review.${state}.solid`} aria-live='polite'>
