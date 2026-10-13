@@ -77,7 +77,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
 | `StatTile` | A label and a big number, tinted by `palette`. |
-| `WeekChart` | Seven columns of reviews per day, today last, with values on the caps and a hidden table for screen readers. `days` is `[{ day, count }]`. |
+| `WeekChart` | Seven columns of reviews per day, today last, with values on the caps and a hidden table for screen readers. `days` is `[{ date, count }]`. |
 | `EmptyState` | A dashed panel with an icon, title, guidance and an optional action. |
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |

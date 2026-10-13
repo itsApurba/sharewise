@@ -73,6 +73,7 @@ describe("my stats", () => {
       remembered: 3,
       dueToday: 0,
       reviewsThisWeek: 0,
+      reviewsByDay: ["02-23", "02-24", "02-25", "02-26", "02-27", "02-28", "03-01"].map((d) => ({ date: `2026-${d}`, count: 0 })),
       timezone: "America/New_York",
     });
 
@@ -95,6 +96,13 @@ describe("my stats", () => {
     assert.equal(s.currentStreak, 2);
     assert.equal(s.bestStreak, 2);
     assert.equal(s.reviewsThisWeek, 2);
+    // Per local day: the 03:30Z answer counts on the 2nd in New York, not the 3rd.
+    assert.deepEqual(s.reviewsByDay.slice(-3), [
+      { date: "2026-03-01", count: 0 },
+      { date: "2026-03-02", count: 1 },
+      { date: "2026-03-03", count: 1 },
+    ]);
+    assert.equal(s.reviewsByDay.length, 7);
 
     // Day 5: a day was missed, so the streak restarts at 1 while best stays 2.
     clock.set("2026-03-05T14:00:00Z");
@@ -115,6 +123,7 @@ describe("my stats", () => {
     assert.equal(s.mastered, 1);
     // The week only covers today and the six days before.
     assert.equal(s.reviewsThisWeek, 1);
+    assert.equal(s.reviewsByDay.reduce((sum, d) => sum + d.count, 0), 1);
 
     const profile = await api().get("/api/users/omar");
     assert.equal(profile.body.stats.mastered, 1);
