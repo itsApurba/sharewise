@@ -1,15 +1,12 @@
-const express = require('express')
-const { totalUsers, topActiveUsers } = require('../controllers/user.controller')
-const { totalPosts, topLikedPosts } = require('../controllers/post.controller')
+const express = require("express");
+const analytics = require("../controllers/analytics.controller");
+const { requireAuth, optionalAuth } = require("../middleware/auth");
 
-const router = express.Router()
+const router = express.Router();
 
+router.get("/lessons/most-remembered", optionalAuth, analytics.mostRemembered);
+router.get("/teachers/top", analytics.topTeachers);
+router.get("/me", requireAuth, analytics.myStats);
+router.get("/community", analytics.community);
 
-router.get('/users', totalUsers )
-router.get('/users/top-active', topActiveUsers )
-
-router.get('/posts', totalPosts)
-router.get('/posts/top-liked', topLikedPosts)
-
-
-module.exports = router
+module.exports = router;
