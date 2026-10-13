@@ -1,6 +1,6 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
-const { isValidTimeZone, startOfLocalDay, localDayKey, shiftDayKey } = require("../src/lib/time");
+const { canonicalTimeZone, isValidTimeZone, startOfLocalDay, localDayKey, shiftDayKey } = require("../src/lib/time");
 const { streaks } = require("../src/api/services/stats");
 
 describe("time zones", () => {
@@ -10,6 +10,15 @@ describe("time zones", () => {
     assert.equal(isValidTimeZone("Mars/Base"), false);
     assert.equal(isValidTimeZone(""), false);
     assert.equal(isValidTimeZone(42), false);
+    assert.equal(isValidTimeZone("+01:00"), false);
+  });
+
+  it("canonicalizes IANA names and rejects offsets", () => {
+    assert.equal(canonicalTimeZone("europe/berlin"), "Europe/Berlin");
+    assert.equal(canonicalTimeZone("utc"), "UTC");
+    assert.equal(canonicalTimeZone("+01:00"), null);
+    assert.equal(canonicalTimeZone("-0500"), null);
+    assert.equal(canonicalTimeZone("Mars/Base"), null);
   });
 
   it("finds local midnight and day keys", () => {

@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const User = require("../models/user.model");
 const { assertValid, unauthorized } = require("../../lib/errors");
 const { str } = require("../../lib/validate");
-const { isValidTimeZone } = require("../../lib/time");
+const { canonicalTimeZone } = require("../../lib/time");
 const { me } = require("../services/serialize");
 const { issueToken } = require("../services/tokens");
 
@@ -24,7 +24,11 @@ function profileFields(body, fields, { partial }) {
     else out[key] = str(body[key]);
   }
   if (out.handle) out.handle = out.handle.toLowerCase();
-  if (out.timezone !== undefined && !isValidTimeZone(out.timezone)) fields.timezone = "Timezone must be an IANA name such as Europe/Berlin";
+  if (out.timezone !== undefined) {
+    const timezone = canonicalTimeZone(out.timezone);
+    if (timezone) out.timezone = timezone;
+    else fields.timezone = "Timezone must be an IANA name such as Europe/Berlin";
+  }
   return out;
 }
 

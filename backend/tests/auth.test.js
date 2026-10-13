@@ -8,7 +8,7 @@ before(startDb);
 after(stopDb);
 beforeEach(resetDb);
 
-const valid = { name: "Maya Chen", handle: "Maya_C", email: "Maya@Example.com", password: "correct horse", bio: "Hi", timezone: "Asia/Kolkata" };
+const valid = { name: "Maya Chen", handle: "Maya_C", email: "Maya@Example.com", password: "correct horse", bio: "Hi", timezone: "Asia/Tokyo" };
 
 describe("sign-up", () => {
   it("creates the user, returns a token and never the password", async () => {
@@ -18,7 +18,7 @@ describe("sign-up", () => {
     assert.deepEqual(Object.keys(res.body.user).sort(), ["bio", "createdAt", "email", "handle", "id", "name", "timezone"]);
     assert.equal(res.body.user.handle, "maya_c");
     assert.equal(res.body.user.email, "maya@example.com");
-    assert.equal(res.body.user.timezone, "Asia/Kolkata");
+    assert.equal(res.body.user.timezone, "Asia/Tokyo");
     assert.doesNotMatch(JSON.stringify(res.body), /correct horse|passwordHash/);
 
     const stored = await User.findOne({ handle: "maya_c" }).select("+passwordHash").lean();
@@ -120,6 +120,26 @@ describe("PATCH /users/me", () => {
     res = await api().patch("/api/users/me").set(...maya.auth).send({ bio: "x".repeat(201) });
     assert.equal(res.status, 400);
     assert.match(res.body.error.fields.bio, /200/);
+  });
+
+  it("stores time zones canonically and rejects offsets", async () => {
+    const maya = await signup("maya", { timezone: "america/new_york" });
+    assert.equal((await api().get("/api/auth/me").set(...maya.auth)).body.user.timezone, "America/New_York");
+
+    let res = await api().patch("/api/users/me").set(...maya.auth).send({ timezone: "europe/berlin" });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.user.timezone, "Europe/Berlin");
+    res = await api().get("/api/analytics/me").set(...maya.auth);
+    assert.equal(res.status, 200);
+    assert.equal(res.body.stats.timezone, "Europe/Berlin");
+    assert.equal((await api().get("/api/users/maya")).status, 200);
+
+    res = await api().patch("/api/users/me").set(...maya.auth).send({ timezone: "+01:00" });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error.fields.timezone);
+    res = await api().post("/api/auth/signup").send({ name: "Sam", handle: "sam", email: "sam@example.com", password: "correct horse", timezone: "-05:00" });
+    assert.equal(res.status, 400);
+    assert.ok(res.body.error.fields.timezone);
   });
 
   it("does not need a bio (the old crash)", async () => {

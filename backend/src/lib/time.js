@@ -24,15 +24,19 @@ function formatter(timeZone) {
   return formatters.get(timeZone);
 }
 
-function isValidTimeZone(timeZone) {
-  if (typeof timeZone !== "string" || !timeZone) return false;
+/** The canonical IANA name for `timeZone` ("europe/berlin" -> "Europe/Berlin"), or null for offsets and unknown zones. */
+function canonicalTimeZone(timeZone) {
+  if (typeof timeZone !== "string" || !timeZone) return null;
+  let name;
   try {
-    formatter(timeZone);
-    return true;
+    name = formatter(timeZone).resolvedOptions().timeZone;
   } catch {
-    return false;
+    return null;
   }
+  return /^[A-Za-z]/.test(name) ? name : null;
 }
+
+const isValidTimeZone = (timeZone) => canonicalTimeZone(timeZone) !== null;
 
 /** The local calendar fields of `date` in `timeZone`. */
 function localParts(date, timeZone) {
@@ -75,4 +79,4 @@ function shiftDayKey(key, days) {
   return new Date(Date.UTC(y, m - 1, d + days)).toISOString().slice(0, 10);
 }
 
-module.exports = { DAY_MS, isValidTimeZone, startOfLocalDay, localDayKey, shiftDayKey };
+module.exports = { DAY_MS, canonicalTimeZone, isValidTimeZone, startOfLocalDay, localDayKey, shiftDayKey };
