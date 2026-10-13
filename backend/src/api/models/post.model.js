@@ -9,9 +9,8 @@ const PostSchema = new mongoose.Schema({
   likes: { type: Number, default: 0, min: 0 },
 });
 
-PostSchema.pre("save", function (next) {
+PostSchema.pre("save", function () {
   this.updated_at = Date.now();
-  next();
 });
 
 const Post = mongoose.model("Post", PostSchema);

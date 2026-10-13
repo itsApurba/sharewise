@@ -1,28 +1,9 @@
-import {
-  Box,
-  Center,
-  Divider,
-  Flex,
-  Heading,
-  Spinner,
-  Table,
-  TableCaption,
-  TableContainer,
-  Tbody,
-  Td,
-  Text,
-  Tfoot,
-  Th,
-  Thead,
-  Tr,
-  VStack,
-  useColorModeValue,
-} from "@chakra-ui/react";
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { Box, Center, Flex, Heading, Separator, Spinner, Table, Text, VStack } from "@chakra-ui/react";
 import { getTopUsers, getTotalUsers } from "../../api/userdata";
+import { useQuery } from "@tanstack/react-query";
 
 const UserAnalytics = () => {
+
   const totalUsers = useQuery({
     queryKey: ["total-users"],
     queryFn: getTotalUsers,
@@ -36,11 +17,11 @@ const UserAnalytics = () => {
   return (
     <Center maxW={"container.sm"}>
       <VStack>
-        <Heading>User Analytics</Heading>
+        <Heading size={{ base: "3xl", lg: "4xl" }}>User Analytics</Heading>
         <Text>Total Users: {totalUsers.data?.userCount || 0}</Text>
 
-        <Divider />
-        <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={4} maxW={"container.sm"} w={"900vh"} m={"auto"}>
+        <Separator w='full' />
+        <Box rounded={"lg"} bg={{ base: "gray.100", _dark: "gray.900" }} boxShadow={"lg"} p={4} maxW={"container.sm"} w={"900vh"} m={"auto"}>
           <Heading textAlign={"center"} fontSize={"2xl"} fontWeight={"light"}>
             Top 5 Users
           </Heading>
@@ -50,27 +31,26 @@ const UserAnalytics = () => {
             </Flex>
           ) : (
             <Center w={"full"}>
-              <TableContainer w={"full"}>
-                <Table variant='simple'>
-                  {/* <TableCaption>Top {topUsers?.data.length} Users Based on posts count</TableCaption> */}
-                  <Thead>
-                    <Tr>
-                      <Th>Name</Th>
-                      <Th>ID</Th>
-                      <Th isNumeric>Total Posts</Th>
-                    </Tr>
-                  </Thead>
-                  <Tbody>
+              <Table.ScrollArea w={"full"}>
+                <Table.Root>
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.ColumnHeader>Name</Table.ColumnHeader>
+                      <Table.ColumnHeader>ID</Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign='end'>Total Posts</Table.ColumnHeader>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
                     {topUsers?.data.map((user) => (
-                      <Tr key={user._id}>
-                        <Td>{user.name}</Td>
-                        <Td>{user.user_id}</Td>
-                        <Td isNumeric>{user.post_count}</Td>
-                      </Tr>
+                      <Table.Row key={user._id}>
+                        <Table.Cell>{user.name}</Table.Cell>
+                        <Table.Cell>{user.user_id}</Table.Cell>
+                        <Table.Cell textAlign='end'>{user.post_count}</Table.Cell>
+                      </Table.Row>
                     ))}
-                  </Tbody>
-                </Table>
-              </TableContainer>
+                  </Table.Body>
+                </Table.Root>
+              </Table.ScrollArea>
             </Center>
           )}
         </Box>

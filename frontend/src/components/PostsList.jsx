@@ -1,4 +1,4 @@
-import { Center, Divider, Heading, Spinner, VStack, useDisclosure } from "@chakra-ui/react";
+import { Center, Heading, Separator, Spinner, VStack } from "@chakra-ui/react";
 import { getAllPosts } from "../../api/postdata";
 import PostCard from "./PostCard";
 import { useQuery } from "@tanstack/react-query";
@@ -14,8 +14,8 @@ const PostsList = () => {
   return (
     <Center maxW={"container.sm"}>
       <VStack>
-        <Heading>Posts</Heading>
-        <Divider />
+        <Heading size={{ base: "3xl", lg: "4xl" }}>Posts</Heading>
+        <Separator w='full' />
 
         {isLoading ? (
           <Spinner />

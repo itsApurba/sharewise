@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllUsers } from "../../api/userdata";
-import { Center, Divider, Heading, Spinner, VStack } from "@chakra-ui/react";
+import { Center, Heading, Separator, Spinner, VStack } from "@chakra-ui/react";
 import UsersCard from "./UsersCard";
 
 const UsersList = () => {
@@ -11,8 +11,8 @@ const UsersList = () => {
   return (
     <Center maxW={"container.lg"}>
       <VStack w={"60vw"} className='userlist_vstack'>
-        <Heading>Users</Heading>
-        <Divider />
+        <Heading size={{ base: "3xl", lg: "4xl" }}>Users</Heading>
+        <Separator w='full' />
 
         {isLoading ? <Spinner /> : users?.map((user) => <UsersCard key={user._id} data={user} />)}
       </VStack>

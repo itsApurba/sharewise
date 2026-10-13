@@ -2,19 +2,14 @@ import {
   Avatar,
   Button,
   ButtonGroup,
-  Divider,
-  FormControl,
-  FormLabel,
+  CloseButton,
+  Dialog,
+  Field,
   HStack,
   Heading,
   Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
+  Portal,
+  Separator,
   Text,
   Textarea,
   VStack,
@@ -22,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteUserById, updateUserByID } from "../../api/userdata";
-import { toast } from "react-toastify";
+import { toaster } from "./ui/toaster";
 import { useRef, useState } from "react";
 
 const UsersCard = ({ data }) => {
@@ -34,21 +29,23 @@ const UsersCard = ({ data }) => {
   });
 
   const initialRef = useRef(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open, onOpen, onClose } = useDisclosure();
 
-  const editMutation = useMutation(updateUserByID, {
+  const editMutation = useMutation({
+    mutationFn: updateUserByID,
     onSuccess: () => {
       onClose();
     },
     onError: (err) => {
-      toast.error(err.response.data);
+      toaster.error({ title: err.response.data });
     },
   });
   console.log(data._id);
 
-  const deleteMutation = useMutation(deleteUserById, {
+  const deleteMutation = useMutation({
+    mutationFn: deleteUserById,
     onError: (err) => {
-      toast.error(err.response.data);
+      toaster.error({ title: err.response.data });
     },
   });
 
@@ -76,7 +73,9 @@ const UsersCard = ({ data }) => {
     <VStack className="usercard outer" w={"max-content"} width={"full"}>
       <HStack w={"full"} justify={"space-between"}>
         <HStack>
-          <Avatar size={"md"} />
+          <Avatar.Root size={"md"}>
+            <Avatar.Fallback />
+          </Avatar.Root>
           <VStack px={2} align={"flex-start"}>
             <Heading fontSize={"lg"} fontWeight={"normal"}>
               Name : {formData.name}
@@ -87,12 +86,12 @@ const UsersCard = ({ data }) => {
             <Heading fontSize={"lg"} fontWeight={"normal"}>
               Email : {data.email}
             </Heading>
-            <Divider />
+            <Separator w='full' />
           </VStack>
         </HStack>
         <ButtonGroup>
           <Button onClick={onOpen}>Edit</Button>
-          <Button isLoading={deleteMutation.isLoading} onClick={handleDelete} colorScheme='red'>
+          <Button loading={deleteMutation.isPending} onClick={handleDelete} colorPalette='red'>
             Delete
           </Button>
         </ButtonGroup>
@@ -100,33 +99,41 @@ const UsersCard = ({ data }) => {
       <Text alignSelf={"flex-start"} px={6}>
         BIO: {formData.bio}
       </Text>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit User</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl mb={3}>
-              <FormLabel>Name</FormLabel>
-              <Input ref={initialRef} placeholder='' value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} />
-            </FormControl>
-            <FormControl>
-              <FormLabel>BIO</FormLabel>
-              <Textarea ref={initialRef} placeholder='' value={formData.bio} onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))} />
-            </FormControl>
-          </ModalBody>
+      <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Edit User</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton size='sm' />
+              </Dialog.CloseTrigger>
+              <Dialog.Body>
+                <Field.Root mb={3}>
+                  <Field.Label>Name</Field.Label>
+                  <Input ref={initialRef} placeholder='' value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} />
+                </Field.Root>
+                <Field.Root>
+                  <Field.Label>BIO</Field.Label>
+                  <Textarea ref={initialRef} placeholder='' value={formData.bio} onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))} />
+                </Field.Root>
+              </Dialog.Body>
 
-          <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={handleClose}>
-              Close
-            </Button>
-            <Button isLoading={editMutation.isLoading} variant='ghost' onClick={handleEdit}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      <Divider />
+              <Dialog.Footer>
+                <Button colorPalette='blue' mr={3} onClick={handleClose}>
+                  Close
+                </Button>
+                <Button loading={editMutation.isPending} variant='ghost' onClick={handleEdit}>
+                  Save
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+      <Separator w='full' />
     </VStack>
   );
 };

@@ -11,12 +11,8 @@ export const getPostById = async (id) => {
 };
 
 export const createPost = async (postData) => {
-  try {
-    const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/posts`, postData);
-    return res.data;
-  } catch (error) {
-    throw error;
-  }
+  const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/posts`, postData);
+  return res.data;
 };
 
 export const updatePostByID = async ({ id, content }) => {
