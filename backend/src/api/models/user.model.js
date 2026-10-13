@@ -9,9 +9,8 @@ const UserSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-UserSchema.pre("save", function (next) {
+UserSchema.pre("save", function () {
   this.updated_at = Date.now();
-  next();
 });
 
 

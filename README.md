@@ -27,7 +27,7 @@ This project has the following features:
 
 To install this project, you will need the following:
 
-* Node.js (npm)
+* Node.js 22.12 or later (npm)
 * MongoDB
 * Git
 

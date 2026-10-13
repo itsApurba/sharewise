@@ -1,4 +1,3 @@
-import React from 'react'
 import UserForm from './UserForm'
 import PostForm from './PostForm'
 import { HStack } from '@chakra-ui/react'

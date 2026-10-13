@@ -1,7 +1,7 @@
-import { Box, Button, Center, Checkbox, Divider, FormControl, FormLabel, Heading, Input, Link, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
-import React, { useState } from "react";
-import { createUser, updateUserByID } from "../../api/userdata";
-import { toast } from "react-toastify";
+import { Box, Button, Center, Field, Heading, Input, Separator, Stack, Textarea } from "@chakra-ui/react";
+import { useState } from "react";
+import { createUser } from "../../api/userdata";
+import { toaster } from "./ui/toaster";
 
 const UserForm = () => {
   const [userData, setUserData] = useState({
@@ -27,11 +27,11 @@ const UserForm = () => {
       isCreating: true,
     });
     createUser(userData)
-      .then((res) => {
+      .then(() => {
         setUserData({
           ...userData,
         });
-        toast.success("User created successfully");
+        toaster.success({ title: "User created successfully" });
       })
       .finally(() => {
         setUserData({
@@ -41,51 +41,28 @@ const UserForm = () => {
       });
   };
 
-  const handleUpdateUser = () => {
-    setUserData({
-      ...userData,
-      isUpdating: true,
-    });
-    updateUserByID(userData)
-      .then((res) => {
-        setUserData({
-          ...userData,
-        });
-      })
-      .finally(() => {
-        setUserData({
-          ...userData,
-          isUpdating: false,
-        });
-      });
-  };
-
   return (
-    <Center w={"full"} bg={useColorModeValue("gray.50", "gray.800")}>
-      <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={8}>
+    <Center w={"full"} bg={{ base: "gray.50", _dark: "gray.800" }}>
+      <Box rounded={"lg"} bg={{ base: "gray.100", _dark: "gray.900" }} boxShadow={"lg"} p={8}>
         <Heading fontSize={"2xl"}>Create / Update user</Heading>
-        <Divider py={2} />
+        <Separator py={2} />
         <form onChange={handleFormChange}>
-          <Stack spacing={4}>
-            {/* <FormControl id='id'>
-              <FormLabel>ID</FormLabel>
+          <Stack gap={4}>
+            <Field.Root id="name">
+              <Field.Label>Name</Field.Label>
               <Input type='text' />
-            </FormControl> */}
-            <FormControl id='name'>
-              <FormLabel>Name</FormLabel>
-              <Input type='text' />
-            </FormControl>
-            <FormControl id='email'>
-              <FormLabel>Email</FormLabel>
+            </Field.Root>
+            <Field.Root id="email">
+              <Field.Label>Email</Field.Label>
               <Input type='email' />
-            </FormControl>
-            <FormControl id='bio'>
-              <FormLabel>Bio</FormLabel>
+            </Field.Root>
+            <Field.Root id="bio">
+              <Field.Label>Bio</Field.Label>
               <Textarea resize={"none"} rounded={"lg"} />
-            </FormControl>
+            </Field.Root>
             <Stack>
               <Button
-                isLoading={userData.isCreating}
+                loading={userData.isCreating}
                 bg={"blue.400"}
                 color={"white"}
                 _hover={{
@@ -95,17 +72,6 @@ const UserForm = () => {
               >
                 Create User
               </Button>
-              {/* <Button
-                isLoading={userData.isUpdating}
-                variant='outline'
-                color={"white"}
-                _hover={{
-                  bg: "blue.400",
-                }}
-                onClick={handleUpdateUser}
-              >
-                Update User
-              </Button> */}
             </Stack>
           </Stack>
         </form>

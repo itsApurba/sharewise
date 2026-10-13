@@ -1,20 +1,13 @@
 import {
   Button,
+  CloseButton,
   ButtonGroup,
-  Divider,
-  FormControl,
-  FormLabel,
+  Dialog,
+  Field,
   HStack,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
+  Portal,
+  Separator,
   Skeleton,
-
   Text,
   Textarea,
   VStack,
@@ -23,7 +16,7 @@ import {
 import { useRef, useState } from "react";
 import { getUserByID } from "../../api/userdata";
 import { deletePostByID, dislikePost, likePost } from "../../api/postdata";
-import { toast } from "react-toastify";
+import { toaster } from "./ui/toaster";
 import { updatePostByID } from "../../api/postdata";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -34,32 +27,36 @@ const PostCard = ({ post }) => {
     queryFn: () => getUserByID(post.user_id),
   });
   const initialRef = useRef(null);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open, onOpen, onClose } = useDisclosure();
   const [likes, setLikes] = useState(post.likes);
   const [content, setContent] = useState(post.content);
 
-  const likeMutation = useMutation(likePost, {
+  const likeMutation = useMutation({
+    mutationFn: likePost,
     onError: (err) => {
-      toast.error(err.response.data);
+      toaster.error({ title: err.response.data });
     },
   });
-  const dislikeMutation = useMutation(dislikePost, {
+  const dislikeMutation = useMutation({
+    mutationFn: dislikePost,
     onError: (err) => {
-      toast.error(err.response.data);
+      toaster.error({ title: err.response.data });
     },
   });
-  const editMutation = useMutation(updatePostByID, {
+  const editMutation = useMutation({
+    mutationFn: updatePostByID,
     onSuccess: () => {
       onClose();
     },
     onError: (err) => {
-      toast.error(err.response.data);
+      toaster.error({ title: err.response.data });
     },
   })
 
-  const deleteMutation = useMutation(deletePostByID, {
+  const deleteMutation = useMutation({
+    mutationFn: deletePostByID,
     onError: (err) => {
-      toast.error(err.response.data);
+      toaster.error({ title: err.response.data });
     },
   })
 
@@ -106,45 +103,53 @@ const PostCard = ({ post }) => {
           {user.isLoading ? <Skeleton height='20px' width='100px' /> : <Text>By: {user.data?.name || "DeletedUser"}</Text>}
         </HStack>
         <HStack w='full' justify={"space-between"}>
-          <ButtonGroup variant='outline' spacing='2'>
-            <Button isLoading={likeMutation.isLoading} onClick={handleLike}>
+          <ButtonGroup variant='outline' gap='2'>
+            <Button loading={likeMutation.isPending} onClick={handleLike}>
               Like
             </Button>
-            <Button isLoading={dislikeMutation.isLoading} onClick={handleDislike}>
+            <Button loading={dislikeMutation.isPending} onClick={handleDislike}>
               Dislike
             </Button>
           </ButtonGroup>
-          <ButtonGroup variant='outline' spacing='2'>
+          <ButtonGroup variant='outline' gap='2'>
             <Button onClick={onOpen}>Edit</Button>
-            <Button isLoading={deleteMutation.isLoading} colorScheme='red' onClick={() => handleDelete(post._id)}>
+            <Button loading={deleteMutation.isPending} colorPalette='red' onClick={() => handleDelete(post._id)}>
               Delete
             </Button>
           </ButtonGroup>
         </HStack>
       </VStack>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Edit Post</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <FormControl>
-              <FormLabel>Content</FormLabel>
-              <Textarea ref={initialRef} placeholder='First name' value={content} onChange={(e) => setContent(e.target.value)} />
-            </FormControl>
-          </ModalBody>
+      <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Edit Post</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.CloseTrigger asChild>
+                <CloseButton size='sm' />
+              </Dialog.CloseTrigger>
+              <Dialog.Body>
+                <Field.Root>
+                  <Field.Label>Content</Field.Label>
+                  <Textarea ref={initialRef} placeholder='First name' value={content} onChange={(e) => setContent(e.target.value)} />
+                </Field.Root>
+              </Dialog.Body>
 
-          <ModalFooter>
-            <Button colorScheme='blue' mr={3} onClick={handleClose}>
-              Close
-            </Button>
-            <Button isLoading={editMutation.isLoading} variant='ghost' onClick={handleEdit}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-      <Divider />
+              <Dialog.Footer>
+                <Button colorPalette='blue' mr={3} onClick={handleClose}>
+                  Close
+                </Button>
+                <Button loading={editMutation.isPending} variant='ghost' onClick={handleEdit}>
+                  Save
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
+      <Separator w='full' />
     </>
   );
 };

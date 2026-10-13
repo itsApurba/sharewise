@@ -1,4 +1,3 @@
-const httpStatus = require("http-status");
 const User = require("../models/user.model");
 const logger = require("../../config/logger");
 const Post = require("../models/post.model");
@@ -7,11 +6,11 @@ exports.createUser = async (req, res) => {
   try {
     const user = new User(req.body);
     const savedUser = await user.save();
-    res.status(httpStatus.CREATED);
+    res.status(201);
     res.json(savedUser);
   } catch (error) {
     logger.error(error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).send("Internal server error");
+    res.status(500).send("Internal server error");
   }
 };
 
@@ -41,7 +40,7 @@ exports.updateUser = async (req, res) => {
     res.status(400).send("Bio must be less than 50 characters");
   } else {
     try {
-      const updatedUser = await User.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+      const updatedUser = await User.findByIdAndUpdate(req.params.id, { $set: req.body }, { returnDocument: "after" });
       if (!updatedUser) return res.status(404).send("User not found");
       res.status(200).send(updatedUser);
     } catch (error) {

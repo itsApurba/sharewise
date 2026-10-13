@@ -1,8 +1,8 @@
-import { Box, Button, Center, Divider, FormControl, FormLabel, Heading, Input, Stack, Textarea, useColorModeValue } from "@chakra-ui/react";
-import React, { useRef, useState } from "react";
-import { createPost, updatePostByID } from "../../api/postdata";
+import { Box, Button, Center, Field, Heading, Input, Separator, Stack, Textarea } from "@chakra-ui/react";
+import { useRef, useState } from "react";
+import { createPost } from "../../api/postdata";
 import { useMutation } from "@tanstack/react-query";
-import { toast } from "react-toastify";
+import { toaster } from "./ui/toaster";
 
 const PostForm = () => {
   const formRef = useRef(null);
@@ -14,13 +14,6 @@ const PostForm = () => {
 
   const createPostMutation = useMutation({
     mutationFn: createPost,
-  }, {
-    onSuccess: () => {
-      
-    },
-  });
-  const updatePostMutation = useMutation({
-    mutationFn: updatePostByID,
   });
 
   const handleFormChange = (e) => {
@@ -32,41 +25,30 @@ const PostForm = () => {
   const handleCreatePost = () => {
     createPostMutation.mutate(formData, {
       onSuccess: () => {
-        toast.success("Post created successfully");
+        toaster.success({ title: "Post created successfully" });
         formRef.current.reset();
       },
-      onError: (err) => {
-        toast.error("Something went wrong");
+      onError: () => {
+        toaster.error({ title: "Something went wrong" });
       }
     });
   };
 
-  // const handleUpdatePost = () => {
-  //   updatePostMutation.mutate(formData, {
-  //     onSuccess: () => {
-  //       formRef.current.reset();
-  //     },
-  //   });
-  // };
   return (
-    <Center w={"full"} bg={useColorModeValue("gray.50", "gray.800")}>
-      <Box rounded={"lg"} bg={useColorModeValue("gray.100", "gray.900")} boxShadow={"lg"} p={8}>
+    <Center w={"full"} bg={{ base: "gray.50", _dark: "gray.800" }}>
+      <Box rounded={"lg"} bg={{ base: "gray.100", _dark: "gray.900" }} boxShadow={"lg"} p={8}>
         <form ref={formRef} onChange={handleFormChange}>
           <Heading fontSize={"2xl"}>Create / Update Posts</Heading>
-          <Divider py={2} />
-          <Stack spacing={4}>
-            {/* <FormControl id='post_id'>
-              <FormLabel>Post ID</FormLabel>
+          <Separator py={2} />
+          <Stack gap={4}>
+            <Field.Root id="user_id">
+              <Field.Label>User ID</Field.Label>
               <Input type='text' required />
-            </FormControl> */}
-            <FormControl id='user_id'>
-              <FormLabel>User ID</FormLabel>
-              <Input type='text' required />
-            </FormControl>
-            <FormControl id='content'>
-              <FormLabel>Content</FormLabel>
+            </Field.Root>
+            <Field.Root id="content">
+              <Field.Label>Content</Field.Label>
               <Textarea resize={"none"} rounded={"lg"} />
-            </FormControl>
+            </Field.Root>
             <Stack>
               <Button
                 bg={"blue.400"}
@@ -75,21 +57,10 @@ const PostForm = () => {
                   bg: "blue.500",
                 }}
                 onClick={handleCreatePost}
-                isLoading={createPostMutation.isLoading}
+                loading={createPostMutation.isPending}
               >
                 Create Post
               </Button>
-              {/* <Button
-                variant='outline'
-                color={useColorModeValue("blackAlpha.900", "white")}
-                _hover={{
-                  bg: "blue.400",
-                }}
-                onClick={handleUpdatePost}
-                isLoading={updatePostMutation.isLoading}
-              >
-                Update Post
-              </Button> */}
             </Stack>
           </Stack>
         </form>
