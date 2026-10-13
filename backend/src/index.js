@@ -8,10 +8,12 @@ if (missing.length) {
 
 const logger = require("./config/logger");
 const app = require("./config/express");
-const mongoose = require('./config/mongoose')
+const mongoose = require("./config/mongoose");
 
-
-mongoose.connect()
+mongoose.connect().catch((err) => {
+  logger.error(`Failed to connect to the database: ${err.message}`);
+  process.exit(1);
+});
 
 // Express 5 hands listen errors (such as a port in use) to this callback instead of throwing.
 app.listen(port, (err) => {

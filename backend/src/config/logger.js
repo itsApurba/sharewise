@@ -1,27 +1,13 @@
 const winston = require("winston");
 
+const env = process.env.NODE_ENV;
 
+// Logs go to the console (Vercel and most hosts collect stdout). Tests stay quiet.
 const logger = winston.createLogger({
   level: "info",
-  format: winston.format.json(),
-  transports: [
-    new winston.transports.File({ filename: "error.log", level: "error" }),
-    new winston.transports.File({ filename: "combined.log" }),
-  ],
+  silent: env === "test",
+  format: env === "production" ? winston.format.json() : winston.format.simple(),
+  transports: [new winston.transports.Console()],
 });
-
-if (process.env.NODE_ENV !== "production") {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.simple(),
-    })
-  );
-}
-
-logger.stream = {
-  write: (message) => {
-    logger.info(message.trim());
-  },
-};
 
 module.exports = logger;
