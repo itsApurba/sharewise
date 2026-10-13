@@ -63,16 +63,3 @@ export const SAMPLE_REVIEWS = [
   { lesson: SAMPLE_LESSONS[2], state: "due", stepLabel: "1st review · after 1 day" },
   { lesson: SAMPLE_LESSONS[3], state: "mastered", stepLabel: "5th review · after 1 month" },
 ];
-
-export const SAMPLE_STATS = {
-  streak: 6,
-  mastered: 14,
-  dueToday: SAMPLE_REVIEWS.length,
-  retention: "86%",
-  topLessons: SAMPLE_LESSONS.map(({ id, title, author, rememberCount }) => ({ id, title, author, rememberCount })),
-  topAuthors: [
-    { ...authors.ada, taught: 128 },
-    { ...authors.lin, taught: 64 },
-    { ...authors.sam, taught: 23 },
-  ],
-};

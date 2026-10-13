@@ -1,4 +1,4 @@
-import { LuBrain, LuChartColumn, LuChartNoAxesColumn, LuCompass, LuHouse, LuPenLine, LuTrophy, LuUser, LuUsers } from "react-icons/lu";
+import { LuBrain, LuChartColumn, LuCompass, LuHouse, LuPenLine, LuUser, LuUsers } from "react-icons/lu";
 import { SAMPLE_VIEWER } from "../../sample/sampleData";
 
 /**
@@ -18,6 +18,4 @@ export const PRIMARY_NAV = [
 export const CLASSIC_NAV = [
   { to: "/create", label: "Create user / post", icon: LuPenLine },
   { to: "/users", label: "Users", icon: LuUsers },
-  { to: "/user-analytics", label: "User analytics", icon: LuTrophy },
-  { to: "/post-analytics", label: "Post analytics", icon: LuChartNoAxesColumn },
 ];

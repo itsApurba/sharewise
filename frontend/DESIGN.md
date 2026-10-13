@@ -77,6 +77,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
 | `StatTile` | A label and a big number, tinted by `palette`. |
+| `WeekChart` | Seven columns of reviews per day, today last, with values on the caps and a hidden table for screen readers. `days` is `[{ day, count }]`. |
 | `EmptyState` | A dashed panel with an icon, title, guidance and an optional action. |
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |
@@ -92,12 +93,12 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/` | Feed | Real posts (classic API), restyled |
 | `/explore` | Explore | Placeholder, sample data |
 | `/review` | Review queue | Placeholder, sample data (interactive) |
-| `/stats` | Stats | Placeholder, sample data |
+| `/stats` | Stats | Real data: your streak and progress, top lessons and teachers, community totals |
 | `/u/:handle` | Profile | Placeholder, sample data |
 | `/lesson/:id` | Lesson detail | Placeholder, sample data |
 | `/new` | Lesson composer | Layout only |
 | `/login`, `/signup` | Auth (own layout, no nav) | Layout only |
-| `/create`, `/user`, `/post`, `/users`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
+| `/create`, `/user`, `/post`, `/users` | Classic screens | Real data, restyled |
 | `*` | Not found | Done |
 
 Sample data lives in `src/sample/sampleData.js`. All of it is invented. Each feature slice should replace its imports from that file with real queries, and delete the file once nothing imports it.

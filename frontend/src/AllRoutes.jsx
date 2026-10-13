@@ -3,8 +3,6 @@ import UserForm from "./components/UserForm";
 import PostForm from "./components/PostForm";
 import PostsList from "./components/PostsList";
 import UsersList from "./components/UsersList";
-import UserAnalytics from "./components/UserAnalytics";
-import PostAnalytics from "./components/PostAnalytics";
 import CreatePage from "./components/CreatePage";
 import AppShell from "./components/ds/AppShell";
 import { PageContainer } from "./components/ds/Page";
@@ -36,8 +34,6 @@ const AllRoutes = () => {
         <Route path='/user' element={<PageContainer><UserForm /></PageContainer>} />
         <Route path='/users' element={<UsersList />} />
         <Route path='/post' element={<PageContainer><PostForm /></PageContainer>} />
-        <Route path='/user-analytics' element={<UserAnalytics />} />
-        <Route path='/post-analytics' element={<PostAnalytics />} />
 
         <Route path='*' element={<NotFoundPage />} />
       </Route>
