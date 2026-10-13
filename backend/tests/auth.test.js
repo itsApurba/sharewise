@@ -125,11 +125,16 @@ describe("PATCH /users/me", () => {
   it("stores time zones canonically and rejects offsets", async () => {
     const maya = await signup("maya", { timezone: "america/new_york" });
     assert.equal((await api().get("/api/auth/me").set(...maya.auth)).body.user.timezone, "America/New_York");
-    const omar = await signup("omar", { timezone: "asia/kolkata" });
-    assert.equal(omar.user.timezone, "Asia/Kolkata");
-    assert.equal((await api().get("/api/analytics/me").set(...omar.auth)).status, 200);
+    let res;
+    for (const [handle, timezone] of [["omar", "asia/kolkata"], ["priya", "ASIA/KOLKATA"], ["noor", "Asia/Kolkata"], ["lee", "Asia/kolkata"]]) {
+      const user = await signup(handle, { timezone });
+      assert.equal(user.user.timezone, "Asia/Kolkata");
+      res = await api().get("/api/analytics/me").set(...user.auth);
+      assert.equal(res.status, 200);
+      assert.equal(res.body.stats.timezone, "Asia/Kolkata");
+    }
 
-    let res = await api().patch("/api/users/me").set(...maya.auth).send({ timezone: "europe/berlin" });
+    res = await api().patch("/api/users/me").set(...maya.auth).send({ timezone: "europe/berlin" });
     assert.equal(res.status, 200);
     assert.equal(res.body.user.timezone, "Europe/Berlin");
     res = await api().get("/api/analytics/me").set(...maya.auth);

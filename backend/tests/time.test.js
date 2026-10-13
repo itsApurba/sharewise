@@ -22,11 +22,20 @@ describe("time zones", () => {
     assert.equal(canonicalTimeZone("asia/kolkata"), "Asia/Kolkata");
     assert.equal(canonicalTimeZone("Europe/Kyiv"), "Europe/Kyiv");
     assert.equal(canonicalTimeZone("america/argentina/buenos_aires"), "America/Argentina/Buenos_Aires");
-    assert.equal(canonicalTimeZone("US/Eastern"), "US/Eastern");
-    assert.equal(canonicalTimeZone("us/eastern"), null);
+    assert.equal(canonicalTimeZone("ASIA/KOLKATA"), "Asia/Kolkata");
+    assert.equal(canonicalTimeZone("Asia/kolkata"), "Asia/Kolkata");
+    assert.equal(isValidTimeZone("Asia/kolkata"), false);
+    assert.equal(canonicalTimeZone("Asia/Calcutta"), "Asia/Calcutta");
     assert.equal(canonicalTimeZone("+01:00"), null);
     assert.equal(canonicalTimeZone("-0500"), null);
     assert.equal(canonicalTimeZone("Mars/Base"), null);
+  });
+
+  it("computes local days for renamed zones", () => {
+    for (const zone of ["Asia/Kolkata", "Europe/Kyiv", "Asia/Ho_Chi_Minh", "America/Nuuk", "Pacific/Kanton", "America/Argentina/Buenos_Aires"]) {
+      assert.equal(canonicalTimeZone(zone), zone);
+      assert.equal(localDayKey(new Date("2026-07-01T06:00:00Z"), zone), "2026-07-01");
+    }
   });
 
   it("finds local midnight and day keys", () => {
