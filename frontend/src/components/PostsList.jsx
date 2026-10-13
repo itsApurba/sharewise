@@ -34,7 +34,7 @@ const PostsList = () => {
           description='Be the first to share something you learned.'
           action={
             <Button asChild rounded='full'>
-              <Link to='/create'>Write the first post</Link>
+              <Link to='/post'>Write the first post</Link>
             </Button>
           }
         />

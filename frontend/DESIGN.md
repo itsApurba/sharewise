@@ -93,12 +93,17 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/explore` | Explore | Placeholder, sample data |
 | `/review` | Review queue | Placeholder, sample data (interactive) |
 | `/stats` | Stats | Placeholder, sample data |
-| `/u/:handle` | Profile | Placeholder, sample data |
+| `/u/:handle` | Profile (`?tab=followers` or `following` picks the list) | Real data |
+| `/profile` | Redirects to the signed-in user's profile | Done |
+| `/settings/profile` | Edit my profile, log out, delete account | Real data |
 | `/lesson/:id` | Lesson detail | Placeholder, sample data |
 | `/new` | Lesson composer | Layout only |
-| `/login`, `/signup` | Auth (own layout, no nav) | Layout only |
-| `/create`, `/user`, `/post`, `/users`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
+| `/login`, `/signup` | Auth (own layout, no nav). `?next=` is where to go afterwards | Real data |
+| `/welcome` | Onboarding after sign-up: suggested people to follow (own layout) | Real data |
+| `/post`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
 | `*` | Not found | Done |
+
+Only `/explore`, `/login` and `/signup` are public. Every other route sits inside `RequireAuth` (`src/components/auth/Guards.jsx`), which sends logged-out visitors to `/login?next=<path>`.
 
 Sample data lives in `src/sample/sampleData.js`. All of it is invented. Each feature slice should replace its imports from that file with real queries, and delete the file once nothing imports it.
 

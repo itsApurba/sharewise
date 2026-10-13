@@ -19,7 +19,7 @@ const NewLessonPage = () => {
   return (
     <PageContainer>
       <PageHeader eyebrow='Teach something' title='New lesson' description='One idea, small enough to remember.' backTo='/' backLabel='Feed' />
-      <PreviewNotice>Layout preview. Publishing arrives with the lesson composer. Need the original form? Use <Link to='/create'><Text as='span' textDecoration='underline'>Create user / post</Text></Link>.</PreviewNotice>
+      <PreviewNotice>Layout preview. Publishing arrives with the lesson composer. Need the original form? Use <Link to='/post'><Text as='span' textDecoration='underline'>Create post</Text></Link>.</PreviewNotice>
       <Surface as='form' onSubmit={submit}>
         <Stack gap='5'>
           <Field.Root>

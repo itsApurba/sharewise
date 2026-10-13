@@ -3,8 +3,6 @@
  * Each feature slice replaces its use of this file with real queries, then the file goes.
  */
 
-export const SAMPLE_VIEWER = { name: "Sample Learner", handle: "sample-learner", streak: 6, bio: "Placeholder profile. Real profiles arrive with sign-up." };
-
 const authors = {
   ada: { name: "Ada Example", handle: "ada-example", streak: 12 },
   lin: { name: "Lin Placeholder", handle: "lin-placeholder", streak: 3 },
