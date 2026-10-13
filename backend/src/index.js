@@ -1,4 +1,11 @@
-const { port, env } = require("./config/vars");
+const { port, env, missingConfig } = require("./config/vars");
+
+const missing = env === "test" ? [] : missingConfig();
+if (missing.length) {
+  console.error(`Missing required environment variables: ${missing.join(", ")}`);
+  process.exit(1);
+}
+
 const logger = require("./config/logger");
 const app = require("./config/express");
 const mongoose = require('./config/mongoose')
