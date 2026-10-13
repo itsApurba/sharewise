@@ -3,3 +3,4 @@
 // something connects through src/config/mongoose.js by mistake.
 process.env.NODE_ENV = "test";
 process.env.MONGO_URI = "mongodb://127.0.0.1:9/sharewise-tests-must-not-use-this";
+process.env.JWT_SECRET = "test-secret";

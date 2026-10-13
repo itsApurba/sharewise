@@ -1,22 +1,24 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const { logs } = require("./vars");
+const { env, logs } = require("./vars");
 const compress = require("compression");
-const routes = require('../api/routes')
+const routes = require("../api/routes");
+const { errorHandler, notFoundRoute } = require("../api/middleware/error");
 
-const app = express()
+const app = express();
 
-app.use(morgan(logs));
+if (env !== "test") app.use(morgan(logs));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "100kb" }));
 
 app.use(compress());
-app.use(cors());
+// Auth uses bearer tokens, not cookies, so any origin may call the API.
+app.use(cors({ exposedHeaders: ["X-Due-Count"] }));
 
+app.use("/api", routes);
 
-app.use('/api', routes)
-
+app.use(notFoundRoute);
+app.use(errorHandler);
 
 module.exports = app;

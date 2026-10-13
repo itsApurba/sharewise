@@ -1,18 +1,18 @@
-const express = require('express')
-const { createUser, getUser, updateUser, deleteUser, getAllUsers } = require('../controllers/user.controller')
+const express = require("express");
+const users = require("../controllers/user.controller");
+const { requireAuth, optionalAuth } = require("../middleware/auth");
 
+const router = express.Router();
 
-const router = express.Router()
+router.get("/", users.listUsers);
+router.patch("/me", requireAuth, users.updateMe);
+router.delete("/me", requireAuth, users.deleteMe);
 
+router.get("/:handle", optionalAuth, users.getProfile);
+router.get("/:handle/lessons", optionalAuth, users.getUserLessons);
+router.get("/:handle/followers", users.getFollowers);
+router.get("/:handle/following", users.getFollowing);
+router.post("/:handle/follow", requireAuth, users.follow);
+router.delete("/:handle/follow", requireAuth, users.unfollow);
 
-router.get('/', getAllUsers)
-
-router.post('/', createUser)
-
-router.get('/:id', getUser)
-
-router.put('/:id', updateUser)
-
-router.delete('/:id', deleteUser)
-
-module.exports = router
+module.exports = router;
