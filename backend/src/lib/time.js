@@ -24,19 +24,32 @@ function formatter(timeZone) {
   return formatters.get(timeZone);
 }
 
-/** The canonical IANA name for `timeZone` ("europe/berlin" -> "Europe/Berlin"), or null for offsets and unknown zones. */
+const knownZones = new Map(Intl.supportedValuesOf("timeZone").map((name) => [name.toLowerCase(), name]));
+const knownAreas = new Set(Intl.supportedValuesOf("timeZone").filter((name) => name.includes("/")).map((name) => name.split("/")[0]));
+
+/**
+ * The IANA name for `timeZone` with only its letter case corrected ("europe/berlin" -> "Europe/Berlin";
+ * "Asia/Kolkata" stays as sent, never ICU's legacy alias), or null for offsets, unknown zones and
+ * lowercase names whose casing cannot be recovered. MongoDB matches zone names case-sensitively.
+ */
 function canonicalTimeZone(timeZone) {
   if (typeof timeZone !== "string" || !timeZone) return null;
-  let name;
+  let resolved;
   try {
-    name = formatter(timeZone).resolvedOptions().timeZone;
+    resolved = formatter(timeZone).resolvedOptions().timeZone;
   } catch {
     return null;
   }
-  return /^[A-Za-z]/.test(name) ? name : null;
+  if (!/^[A-Za-z]/.test(resolved)) return null;
+  const lower = timeZone.toLowerCase();
+  if (knownZones.has(lower)) return knownZones.get(lower);
+  if (resolved.toLowerCase() === lower) return resolved;
+  if (timeZone !== lower) return timeZone;
+  const titled = lower.replace(/(^|[/_-])([a-z])/g, (_, sep, letter) => sep + letter.toUpperCase());
+  return titled.includes("/") && knownAreas.has(titled.split("/")[0]) ? titled : null;
 }
 
-const isValidTimeZone = (timeZone) => canonicalTimeZone(timeZone) !== null;
+const isValidTimeZone = (timeZone) => canonicalTimeZone(timeZone) === timeZone;
 
 /** The local calendar fields of `date` in `timeZone`. */
 function localParts(date, timeZone) {

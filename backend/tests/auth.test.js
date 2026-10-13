@@ -8,7 +8,7 @@ before(startDb);
 after(stopDb);
 beforeEach(resetDb);
 
-const valid = { name: "Maya Chen", handle: "Maya_C", email: "Maya@Example.com", password: "correct horse", bio: "Hi", timezone: "Asia/Tokyo" };
+const valid = { name: "Maya Chen", handle: "Maya_C", email: "Maya@Example.com", password: "correct horse", bio: "Hi", timezone: "Asia/Kolkata" };
 
 describe("sign-up", () => {
   it("creates the user, returns a token and never the password", async () => {
@@ -18,7 +18,7 @@ describe("sign-up", () => {
     assert.deepEqual(Object.keys(res.body.user).sort(), ["bio", "createdAt", "email", "handle", "id", "name", "timezone"]);
     assert.equal(res.body.user.handle, "maya_c");
     assert.equal(res.body.user.email, "maya@example.com");
-    assert.equal(res.body.user.timezone, "Asia/Tokyo");
+    assert.equal(res.body.user.timezone, "Asia/Kolkata");
     assert.doesNotMatch(JSON.stringify(res.body), /correct horse|passwordHash/);
 
     const stored = await User.findOne({ handle: "maya_c" }).select("+passwordHash").lean();
@@ -125,6 +125,9 @@ describe("PATCH /users/me", () => {
   it("stores time zones canonically and rejects offsets", async () => {
     const maya = await signup("maya", { timezone: "america/new_york" });
     assert.equal((await api().get("/api/auth/me").set(...maya.auth)).body.user.timezone, "America/New_York");
+    const omar = await signup("omar", { timezone: "asia/kolkata" });
+    assert.equal(omar.user.timezone, "Asia/Kolkata");
+    assert.equal((await api().get("/api/analytics/me").set(...omar.auth)).status, 200);
 
     let res = await api().patch("/api/users/me").set(...maya.auth).send({ timezone: "europe/berlin" });
     assert.equal(res.status, 200);

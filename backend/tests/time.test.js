@@ -11,11 +11,19 @@ describe("time zones", () => {
     assert.equal(isValidTimeZone(""), false);
     assert.equal(isValidTimeZone(42), false);
     assert.equal(isValidTimeZone("+01:00"), false);
+    assert.equal(isValidTimeZone("Asia/Kolkata"), true);
+    assert.equal(isValidTimeZone("europe/berlin"), false);
   });
 
   it("canonicalizes IANA names and rejects offsets", () => {
     assert.equal(canonicalTimeZone("europe/berlin"), "Europe/Berlin");
     assert.equal(canonicalTimeZone("utc"), "UTC");
+    assert.equal(canonicalTimeZone("Asia/Kolkata"), "Asia/Kolkata");
+    assert.equal(canonicalTimeZone("asia/kolkata"), "Asia/Kolkata");
+    assert.equal(canonicalTimeZone("Europe/Kyiv"), "Europe/Kyiv");
+    assert.equal(canonicalTimeZone("america/argentina/buenos_aires"), "America/Argentina/Buenos_Aires");
+    assert.equal(canonicalTimeZone("US/Eastern"), "US/Eastern");
+    assert.equal(canonicalTimeZone("us/eastern"), null);
     assert.equal(canonicalTimeZone("+01:00"), null);
     assert.equal(canonicalTimeZone("-0500"), null);
     assert.equal(canonicalTimeZone("Mars/Base"), null);
