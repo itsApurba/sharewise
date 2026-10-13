@@ -97,7 +97,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/lesson/:id` | Lesson detail | Placeholder, sample data |
 | `/new` | Lesson composer | Layout only |
 | `/login`, `/signup` | Auth (own layout, no nav) | Layout only |
-| `/create`, `/users`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
+| `/create`, `/user`, `/post`, `/users`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
 | `*` | Not found | Done |
 
 Sample data lives in `src/sample/sampleData.js`. All of it is invented. Each feature slice should replace its imports from that file with real queries, and delete the file once nothing imports it.
