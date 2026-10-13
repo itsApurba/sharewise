@@ -1,4 +1,4 @@
-import { LuBrain, LuChartColumn, LuChartNoAxesColumn, LuCompass, LuHouse, LuPenLine, LuTrophy, LuUser, LuUsers } from "react-icons/lu";
+import { LuBrain, LuChartColumn, LuChartNoAxesColumn, LuCompass, LuHouse, LuTrophy, LuUser, LuUsers } from "react-icons/lu";
 import { SAMPLE_VIEWER } from "../../sample/sampleData";
 
 /**
@@ -16,7 +16,6 @@ export const PRIMARY_NAV = [
 
 /** The original Sharewise screens, kept reachable while the feature slices replace them. */
 export const CLASSIC_NAV = [
-  { to: "/create", label: "Create user / post", icon: LuPenLine },
   { to: "/users", label: "Users", icon: LuUsers },
   { to: "/user-analytics", label: "User analytics", icon: LuTrophy },
   { to: "/post-analytics", label: "Post analytics", icon: LuChartNoAxesColumn },

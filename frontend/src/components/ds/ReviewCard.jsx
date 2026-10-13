@@ -1,32 +1,71 @@
-import { Box, Button, HStack, Heading, Skeleton, SkeletonText, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, HStack, Heading, Icon, Input, Skeleton, SkeletonText, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuCheck, LuEye, LuRotateCcw } from "react-icons/lu";
+import { LuArrowRight, LuCalendarClock, LuCheck, LuEye, LuRotateCcw } from "react-icons/lu";
+import { Link } from "react-router-dom";
+import { errorMessage } from "../../api/client";
+import { nextReviewSentence } from "../../lib/format";
 import { AuthorLine, CodeSnippet } from "./LessonCard";
 import QuizChoices from "./QuizChoices";
 import ReviewStateBadge from "./ReviewStateBadge";
 import Surface from "./Surface";
 
-/**
- * A saved lesson coming back for review. With a multiple-choice quiz, the pick grades it;
- * with a free-answer quiz or none, the reader reveals the answer or lesson and grades themselves.
- * onGrade receives "gotIt" or "forgot". `state` colors the card edge and badge.
- */
-const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
-  const [revealed, setRevealed] = useState(false);
-  const [quizResult, setQuizResult] = useState(null);
-  const { title, body, code, quiz, author } = lesson;
-  const hasChoices = Boolean(quiz?.choices);
+const stateOf = (outcome) => {
+  if (!outcome) return "due";
+  if (outcome.result.grade === "forgot") return "forgot";
+  return outcome.review.mastered ? "mastered" : "gotIt";
+};
 
-  const answerQuiz = (correct) => {
-    setQuizResult(correct ? "gotIt" : "forgot");
-    setRevealed(true);
+/**
+ * A saved lesson coming back for review (an API Review with its lesson).
+ * A choice quiz is answered by picking, a text quiz by typing, and a lesson without a quiz
+ * by revealing it and grading "Got it" or "Forgot". Every answer goes to `onAnswer(body)`,
+ * which resolves to the API's `{ review, result }`; the card then reveals the lesson, the
+ * right answer and when it comes back (dated in `timeZone`, the user's zone). `onContinue`
+ * adds a button after the result.
+ */
+const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "Next", timeZone }) => {
+  const { lesson } = review;
+  const { title, body, code, quiz, author } = lesson;
+  const [revealed, setRevealed] = useState(false);
+  const [picked, setPicked] = useState(null);
+  const [typed, setTyped] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+  const [outcome, setOutcome] = useState(null);
+  const state = stateOf(outcome);
+  const answered = outcome !== null;
+
+  const submit = async (payload) => {
+    setSubmitting(true);
+    setError(null);
+    try {
+      setOutcome(await onAnswer(payload));
+      setRevealed(true);
+    } catch (err) {
+      setPicked(null);
+      setError(errorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
+  const pick = (index) => {
+    setPicked(index);
+    submit({ choice: index });
+  };
+
+  const checkTyped = (event) => {
+    event.preventDefault();
+    if (typed.trim()) submit({ answer: typed.trim() });
+  };
+
+  const correctAnswer = outcome?.result.correctAnswer;
+
   return (
-    <Surface as='article' borderTopWidth='4px' borderTopColor={`review.${state}.solid`}>
+    <Surface as='article' borderTopWidth='4px' borderTopColor={`review.${state}.solid`} aria-live='polite'>
       <Stack gap='4'>
         <HStack justify='space-between' gap='2' wrap='wrap'>
-          <ReviewStateBadge state={quizResult ?? state} />
+          <ReviewStateBadge state={state} />
           {stepLabel && (
             <Text fontSize='xs' color='fg.muted'>
               {stepLabel}
@@ -38,27 +77,70 @@ const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
           <Text textStyle='label' color='fg.muted'>
             {quiz ? "Quick check" : "Do you remember?"}
           </Text>
-          <Heading as='h3' textStyle='title' fontSize='xl'>
-            {quiz ? quiz.question : title}
+          <Heading as='h3' textStyle='title' fontSize='xl' overflowWrap='anywhere'>
+            {quiz ? quiz.prompt : title}
           </Heading>
         </Stack>
 
-        {hasChoices && <QuizChoices choices={quiz.choices} answerIndex={quiz.answerIndex} onAnswer={answerQuiz} />}
+        {quiz?.kind === "choice" && (
+          <QuizChoices
+            choices={quiz.choices}
+            picked={picked}
+            correctIndex={correctAnswer?.correctIndex ?? null}
+            onPick={pick}
+            disabled={submitting || answered}
+          />
+        )}
+
+        {quiz?.kind === "text" && !answered && (
+          <Stack as='form' gap='3' onSubmit={checkTyped}>
+            <Input
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder='Type your answer'
+              aria-label='Your answer'
+              maxLength={100}
+              autoComplete='off'
+              disabled={submitting}
+            />
+            <HStack gap='3'>
+              <Button flex='1' variant='outline' colorPalette='gray' rounded='full' onClick={() => submit({ grade: "forgot" })} disabled={submitting}>
+                <LuEye />
+                Show answer
+              </Button>
+              <Button flex='1' type='submit' colorPalette='plum' rounded='full' loading={submitting} disabled={!typed.trim()}>
+                <LuCheck />
+                Check
+              </Button>
+            </HStack>
+          </Stack>
+        )}
 
         {revealed && (
           <Box bg='bg.subtle' rounded='control' p='3'>
             <Stack gap='3'>
-              {quiz && !hasChoices && (
+              {quiz?.kind === "text" && correctAnswer && (
                 <Stack gap='1'>
                   <Text textStyle='label' color='fg.muted'>
                     Answer
                   </Text>
                   <Text fontWeight='600' whiteSpace='pre-wrap' overflowWrap='anywhere'>
-                    {quiz.answer}
+                    {correctAnswer.answer}
                   </Text>
+                  {outcome.result.correct === false && typed.trim() && (
+                    <Text fontSize='sm' color='review.forgot.fg' overflowWrap='anywhere'>
+                      You wrote: {typed.trim()}
+                    </Text>
+                  )}
                 </Stack>
               )}
-              {quiz && title && <Text fontWeight='600'>{title}</Text>}
+              {quiz && (
+                <Link to={`/lesson/${lesson.id}`}>
+                  <Text fontWeight='600' _hover={{ textDecoration: "underline" }} overflowWrap='anywhere'>
+                    {title}
+                  </Text>
+                </Link>
+              )}
               <Text textStyle='lesson' whiteSpace='pre-wrap' overflowWrap='anywhere'>
                 {body}
               </Text>
@@ -68,28 +150,46 @@ const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
           </Box>
         )}
 
-        {hasChoices ? (
-          quizResult && (
-            <Button colorPalette={quizResult === "gotIt" ? "sage" : "clay"} rounded='full' onClick={() => onGrade?.(quizResult)}>
-              {quizResult === "gotIt" ? "Nice, next review" : "Okay, show it again sooner"}
-            </Button>
-          )
-        ) : !revealed ? (
-          <Button variant='outline' colorPalette='gray' rounded='full' onClick={() => setRevealed(true)}>
-            <LuEye />
-            {quiz ? "Show answer" : "Show the lesson"}
-          </Button>
+        {error && (
+          <Text fontSize='sm' color='review.forgot.fg' role='alert'>
+            {error}
+          </Text>
+        )}
+
+        {answered ? (
+          <Stack gap='3'>
+            <HStack gap='2' align='flex-start' color='fg.muted' fontSize='sm'>
+              <Icon boxSize='4' mt='0.5' flexShrink={0}>
+                <LuCalendarClock />
+              </Icon>
+              <Text>{nextReviewSentence(outcome.review, timeZone)}</Text>
+            </HStack>
+            {onContinue && (
+              <Button colorPalette={state === "forgot" ? "clay" : "sage"} rounded='full' onClick={onContinue}>
+                {continueLabel}
+                <LuArrowRight />
+              </Button>
+            )}
+          </Stack>
         ) : (
-          <HStack gap='3'>
-            <Button flex='1' colorPalette='clay' variant='subtle' rounded='full' onClick={() => onGrade?.("forgot")}>
-              <LuRotateCcw />
-              Forgot
+          !quiz &&
+          (!revealed ? (
+            <Button variant='outline' colorPalette='gray' rounded='full' onClick={() => setRevealed(true)}>
+              <LuEye />
+              Show the lesson
             </Button>
-            <Button flex='1' colorPalette='sage' rounded='full' onClick={() => onGrade?.("gotIt")}>
-              <LuCheck />
-              Got it
-            </Button>
-          </HStack>
+          ) : (
+            <HStack gap='3'>
+              <Button flex='1' colorPalette='clay' variant='subtle' rounded='full' onClick={() => submit({ grade: "forgot" })} disabled={submitting}>
+                <LuRotateCcw />
+                Forgot
+              </Button>
+              <Button flex='1' colorPalette='sage' rounded='full' onClick={() => submit({ grade: "got" })} loading={submitting}>
+                <LuCheck />
+                Got it
+              </Button>
+            </HStack>
+          ))
         )}
       </Stack>
     </Surface>

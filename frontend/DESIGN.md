@@ -71,9 +71,9 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `SectionHeading` | An `h2` with an optional action on the right. |
 | `PreviewNotice` | A honey note marking a screen that shows sample data. Remove it when the screen gets real data. |
 | `Surface` | The card surface. Use it for any panel. |
-| `LessonCard` / `LessonCardSkeleton` | Author line, title, body, code, link, tags, a quiz tag, and a "Remember this" footer. `footer` replaces the footer and `headerAction` adds a menu at the top right. `AuthorLine` and `CodeSnippet` are exported from the same file for reuse. |
-| `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back. With a multiple-choice quiz, the pick grades it. With a free-answer quiz, the reader taps "Show answer", then "Got it" or "Forgot". Without a quiz, the reader taps "Show the lesson", then grades the same way. `onGrade("gotIt" \| "forgot")`. `state` colors the top edge and the badge. |
-| `QuizChoices` | Lettered answer buttons. The first pick locks the group, shows the right answer in sage and a wrong pick in clay, and calls `onAnswer(correct)`. |
+| `LessonCard` / `LessonCardSkeleton` | Author line, title, body, code, link, tags (linking to Explore), a quiz tag, and a "Remember this" footer. Takes an API Lesson. `footer` replaces the footer and `headerAction` adds a menu at the top right. `AuthorLine` and `CodeSnippet` (a string or `{ language, source }`) are exported from the same file for reuse. `components/lessons/LessonItem` wires it to the API (remember toggle, author edit/delete menu). |
+| `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back (an API Review). A choice quiz is answered by picking, a free-answer quiz by typing (or "Show answer", which counts as forgot), and a lesson without a quiz by "Show the lesson" then "Got it" or "Forgot". Each answer goes to `onAnswer(body)`, which resolves to the API's `{ review, result }`; the card then colors itself by the result, reveals the lesson and answer, and says when it comes back. `onContinue` adds a button after the result. |
+| `QuizChoices` | Lettered answer buttons, graded by the caller. `onPick(index)` fires on the first pick and locks the group; once `correctIndex` is known it shows the right answer in sage and a wrong `picked` in clay. |
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
 | `StatTile` | A label and a big number, tinted by `palette`. |
@@ -81,7 +81,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |
 
-**Quiz shapes:** a lesson's optional `quiz` is either multiple choice, `{ question, choices: string[], answerIndex }`, or free answer, `{ question, answer }`. Components tell them apart by whether `choices` is present. `ReviewCard` and the lesson page handle both; only multiple choice goes through `QuizChoices`.
+**Quiz shapes:** a lesson's optional `quiz` follows `backend/API.md`: `{ prompt, kind: "choice" | "text", choices? }`, plus `correctIndex` / `answer` only once the viewer may see them. Answers are graded on the server. `ReviewCard` and the lesson page handle both kinds; only multiple choice goes through `QuizChoices`.
 
 **Toasts:** call `toaster.success | error | warning | info({ title, description })` from `src/components/ui/toaster.js`. Toasts appear at the top, so they never cover the bottom nav. They render as a panel with a state-colored edge: sage, clay, honey, or ember for info.
 
@@ -89,15 +89,16 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 
 | Path | Screen | Status |
 |---|---|---|
-| `/` | Feed | Real posts (classic API), restyled |
-| `/explore` | Explore | Placeholder, sample data |
-| `/review` | Review queue | Placeholder, sample data (interactive) |
+| `/` | Feed | Real: lessons mixed with due reviews, infinite scroll; a welcome plus newest lessons when logged out |
+| `/explore` | Explore | Real, public; `?tag=` filters |
+| `/review` | Review queue | Real: one due card at a time, progress, done state |
 | `/stats` | Stats | Placeholder, sample data |
 | `/u/:handle` | Profile | Placeholder, sample data |
-| `/lesson/:id` | Lesson detail | Placeholder, sample data |
-| `/new` | Lesson composer | Layout only |
+| `/lesson/:id` | Lesson detail | Real: remember toggle, inline quiz, author menu |
+| `/lesson/:id/edit` | Edit lesson | Real, author only |
+| `/new` | Lesson composer | Real, with validation, quiz builder and preview |
 | `/login`, `/signup` | Auth (own layout, no nav) | Layout only |
-| `/create`, `/user`, `/post`, `/users`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
+| `/user`, `/users`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
 | `*` | Not found | Done |
 
 Sample data lives in `src/sample/sampleData.js`. All of it is invented. Each feature slice should replace its imports from that file with real queries, and delete the file once nothing imports it.
