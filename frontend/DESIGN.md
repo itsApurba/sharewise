@@ -72,7 +72,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `PreviewNotice` | A honey note marking a screen that shows sample data. Remove it when the screen gets real data. |
 | `Surface` | The card surface. Use it for any panel. |
 | `LessonCard` / `LessonCardSkeleton` | Author line, title, body, code, link, tags, a quiz tag, and a "Remember this" footer. `footer` replaces the footer and `headerAction` adds a menu at the top right. `AuthorLine` and `CodeSnippet` are exported from the same file for reuse. |
-| `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back. With a quiz, the answer grades it. Without one, the reader taps "Show the lesson", then "Got it" or "Forgot". `onGrade("gotIt" \| "forgot")`. `state` colors the top edge and the badge. |
+| `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back. With a multiple-choice quiz, the pick grades it. With a free-answer quiz, the reader taps "Show answer", then "Got it" or "Forgot". Without a quiz, the reader taps "Show the lesson", then grades the same way. `onGrade("gotIt" \| "forgot")`. `state` colors the top edge and the badge. |
 | `QuizChoices` | Lettered answer buttons. The first pick locks the group, shows the right answer in sage and a wrong pick in clay, and calls `onAnswer(correct)`. |
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
@@ -80,6 +80,8 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `EmptyState` | A dashed panel with an icon, title, guidance and an optional action. |
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |
+
+**Quiz shapes:** a lesson's optional `quiz` is either multiple choice, `{ question, choices: string[], answerIndex }`, or free answer, `{ question, answer }`. Components tell them apart by whether `choices` is present. `ReviewCard` and the lesson page handle both; only multiple choice goes through `QuizChoices`.
 
 **Toasts:** call `toaster.success | error | warning | info({ title, description })` from `src/components/ui/toaster.js`. Toasts appear at the top, so they never cover the bottom nav. They render as a panel with a state-colored edge: sage, clay, honey, or ember for info.
 

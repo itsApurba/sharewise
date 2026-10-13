@@ -43,13 +43,25 @@ export const SAMPLE_LESSONS = [
     createdLabel: "yesterday",
     rememberCount: 8,
   },
+  {
+    id: "sample-4",
+    title: "git switch - jumps back to the last branch",
+    body: "Like cd -, the dash means the branch you were on before. Handy for hopping between a feature branch and main.",
+    code: "git switch -",
+    tags: ["git"],
+    quiz: { question: "Which command returns you to the branch you were on before?", answer: "git switch -" },
+    author: authors.lin,
+    createdLabel: "2 days ago",
+    rememberCount: 11,
+  },
 ];
 
-/** Reviews due today, one per review state, so every card variant is visible. */
+/** Reviews due today, covering each quiz shape and several review states, so every card variant is visible. */
 export const SAMPLE_REVIEWS = [
   { lesson: SAMPLE_LESSONS[0], state: "due", stepLabel: "2nd review · after 3 days" },
   { lesson: SAMPLE_LESSONS[1], state: "forgot", stepLabel: "Forgot last time · back after 1 day" },
   { lesson: SAMPLE_LESSONS[2], state: "due", stepLabel: "1st review · after 1 day" },
+  { lesson: SAMPLE_LESSONS[3], state: "mastered", stepLabel: "5th review · after 1 month" },
 ];
 
 export const SAMPLE_STATS = {

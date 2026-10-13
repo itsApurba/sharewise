@@ -7,14 +7,15 @@ import ReviewStateBadge from "./ReviewStateBadge";
 import Surface from "./Surface";
 
 /**
- * A saved lesson coming back for review. With a quiz, the answer grades it;
- * without one, the reader reveals the lesson and grades themselves.
+ * A saved lesson coming back for review. With a multiple-choice quiz, the pick grades it;
+ * with a free-answer quiz or none, the reader reveals the answer or lesson and grades themselves.
  * onGrade receives "gotIt" or "forgot". `state` colors the card edge and badge.
  */
 const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
   const [revealed, setRevealed] = useState(false);
   const [quizResult, setQuizResult] = useState(null);
   const { title, body, code, quiz, author } = lesson;
+  const hasChoices = Boolean(quiz?.choices);
 
   const answerQuiz = (correct) => {
     setQuizResult(correct ? "gotIt" : "forgot");
@@ -42,11 +43,21 @@ const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
           </Heading>
         </Stack>
 
-        {quiz && <QuizChoices choices={quiz.choices} answerIndex={quiz.answerIndex} onAnswer={answerQuiz} />}
+        {hasChoices && <QuizChoices choices={quiz.choices} answerIndex={quiz.answerIndex} onAnswer={answerQuiz} />}
 
         {revealed && (
           <Box bg='bg.subtle' rounded='control' p='3'>
             <Stack gap='3'>
+              {quiz && !hasChoices && (
+                <Stack gap='1'>
+                  <Text textStyle='label' color='fg.muted'>
+                    Answer
+                  </Text>
+                  <Text fontWeight='600' whiteSpace='pre-wrap' overflowWrap='anywhere'>
+                    {quiz.answer}
+                  </Text>
+                </Stack>
+              )}
               {quiz && title && <Text fontWeight='600'>{title}</Text>}
               <Text textStyle='lesson' whiteSpace='pre-wrap' overflowWrap='anywhere'>
                 {body}
@@ -57,7 +68,7 @@ const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
           </Box>
         )}
 
-        {quiz ? (
+        {hasChoices ? (
           quizResult && (
             <Button colorPalette={quizResult === "gotIt" ? "sage" : "clay"} rounded='full' onClick={() => onGrade?.(quizResult)}>
               {quizResult === "gotIt" ? "Nice, next review" : "Okay, show it again sooner"}
@@ -66,7 +77,7 @@ const ReviewCard = ({ lesson, state = "due", stepLabel, onGrade }) => {
         ) : !revealed ? (
           <Button variant='outline' colorPalette='gray' rounded='full' onClick={() => setRevealed(true)}>
             <LuEye />
-            Show the lesson
+            {quiz ? "Show answer" : "Show the lesson"}
           </Button>
         ) : (
           <HStack gap='3'>
