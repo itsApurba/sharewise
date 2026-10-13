@@ -80,6 +80,7 @@ describe("due reviews and answers", () => {
     let res = await due(omar);
     assert.equal(res.body.items.length, 1);
     assert.equal(res.headers["x-due-count"], "1");
+    assert.match(res.headers["access-control-expose-headers"], /X-Due-Count/);
 
     clock.set("2026-03-12T00:00:00Z");
     res = await due(omar);

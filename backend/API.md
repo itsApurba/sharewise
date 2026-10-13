@@ -3,6 +3,8 @@
 The contract between the backend and the UI. Every route lives under `/api`
 (for example `POST /api/auth/login`). Bodies are JSON (`Content-Type: application/json`,
 at most 100 kB), and every response body is JSON except `204 No Content`.
+`GET /api/` is a health check that answers `{ "ok": true }`. CORS allows any origin (auth is a bearer token, not a cookie)
+and exposes the `X-Due-Count` header.
 
 Contents: [Conventions](#conventions) · [Auth](#auth) · [Users, profiles and follows](#users-profiles-and-follows) ·
 [Lessons](#lessons) · [Remember and reviews](#remember-and-reviews) · [Feed](#feed) ·
