@@ -11,6 +11,7 @@ function notFoundRoute(req, res) {
   res.status(404).json({ error: { code: "NOT_FOUND", message: `No route for ${req.method} ${req.path}` } });
 }
 
+// Express recognizes an error handler by its four parameters, so `next` stays.
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
   let status = 500;

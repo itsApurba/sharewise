@@ -130,7 +130,7 @@ the remember and answer routes return the card without it.
 | Field | Rule |
 |---|---|
 | `name` | required, 1-50 characters after trimming |
-| `handle` | required, 3-20 characters of `a-z 0-9 _`; stored lowercase; unique |
+| `handle` | required, 3-20 characters of `a-z 0-9 _`; stored lowercase; unique (so never `me`, which `/users/me` uses) |
 | `email` | required, a valid address; stored lowercase; unique; cannot be changed later |
 | `password` | required, 8-72 characters; stored as a bcrypt hash |
 | `bio` | optional, at most 200 characters (the same limit everywhere) |
