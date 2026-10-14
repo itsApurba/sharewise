@@ -1,6 +1,6 @@
 import { Box, SimpleGrid } from "@chakra-ui/react";
 import { LuNotebookPen } from "react-icons/lu";
-import { getTopPosts, getTotalPosts } from "../../api/postdata";
+import { getTopPosts, getTotalPosts } from "../legacy-api/postdata";
 import { useQuery } from "@tanstack/react-query";
 import AnalyticsTable from "./AnalyticsTable";
 import { PageContainer, PageHeader, SectionHeading } from "./ds/Page";

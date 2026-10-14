@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAllUsers } from "../../api/userdata";
+import { getAllUsers } from "../legacy-api/userdata";
 import { Stack } from "@chakra-ui/react";
 import { LuUsers } from "react-icons/lu";
 import UsersCard from "./UsersCard";

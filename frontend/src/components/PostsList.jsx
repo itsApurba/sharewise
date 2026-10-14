@@ -1,7 +1,7 @@
 import { Button, Stack } from "@chakra-ui/react";
 import { LuNotebookPen } from "react-icons/lu";
 import { Link } from "react-router-dom";
-import { getAllPosts } from "../../api/postdata";
+import { getAllPosts } from "../legacy-api/postdata";
 import PostCard from "./PostCard";
 import { useQuery } from "@tanstack/react-query";
 import EmptyState from "./ds/EmptyState";

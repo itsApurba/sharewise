@@ -1,10 +1,10 @@
 import { Button, CloseButton, Dialog, Field, HStack, IconButton, Menu, Portal, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuEllipsis, LuPencil, LuThumbsDown, LuThumbsUp, LuTrash2 } from "react-icons/lu";
-import { getUserByID } from "../../api/userdata";
-import { deletePostByID, dislikePost, likePost } from "../../api/postdata";
+import { getUserByID } from "../legacy-api/userdata";
+import { deletePostByID, dislikePost, likePost } from "../legacy-api/postdata";
 import { toaster } from "./ui/toaster";
-import { updatePostByID } from "../../api/postdata";
+import { updatePostByID } from "../legacy-api/postdata";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import LessonCard from "./ds/LessonCard";
 

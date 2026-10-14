@@ -1,6 +1,6 @@
 import { Button, Field, Heading, Input, Stack, Textarea } from "@chakra-ui/react";
 import { useState } from "react";
-import { createPost } from "../../api/postdata";
+import { createPost } from "../legacy-api/postdata";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toaster } from "./ui/toaster";
 import Surface from "./ds/Surface";

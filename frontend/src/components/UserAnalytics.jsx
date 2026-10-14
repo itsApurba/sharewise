@@ -1,6 +1,6 @@
 import { Box, SimpleGrid } from "@chakra-ui/react";
 import { LuUsers } from "react-icons/lu";
-import { getTopUsers, getTotalUsers } from "../../api/userdata";
+import { getTopUsers, getTotalUsers } from "../legacy-api/userdata";
 import { useQuery } from "@tanstack/react-query";
 import AnalyticsTable from "./AnalyticsTable";
 import { PageContainer, PageHeader, SectionHeading } from "./ds/Page";

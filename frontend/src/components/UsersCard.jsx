@@ -1,7 +1,7 @@
 import { Button, CloseButton, Code, Dialog, Field, HStack, Input, Portal, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LuPencil, LuTrash2 } from "react-icons/lu";
-import { deleteUserById, updateUserByID } from "../../api/userdata";
+import { deleteUserById, updateUserByID } from "../legacy-api/userdata";
 import { toaster } from "./ui/toaster";
 import { useState } from "react";
 import StreakAvatar from "./ds/StreakAvatar";
