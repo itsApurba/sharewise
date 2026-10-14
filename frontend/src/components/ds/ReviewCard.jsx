@@ -1,8 +1,9 @@
-import { Box, Button, HStack, Heading, Icon, Input, Skeleton, SkeletonText, Stack, Text } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { Box, Button, HStack, Heading, Icon, Input, Kbd, Skeleton, SkeletonText, Stack, Text } from "@chakra-ui/react";
+import { Fragment, useState } from "react";
 import { LuArrowRight, LuCalendarClock, LuCheck, LuEye, LuRotateCcw } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { errorMessage } from "../../api/client";
+import { usePrefersReducedMotion, useReviewKeys, useSwipe } from "../../hooks/useReviewGestures";
 import { nextReviewSentence } from "../../lib/format";
 import CodeSnippet from "./CodeSnippet";
 import { AuthorLine } from "./LessonCard";
@@ -10,6 +11,63 @@ import Markdown from "./Markdown";
 import QuizChoices from "./QuizChoices";
 import ReviewStateBadge from "./ReviewStateBadge";
 import Surface from "./Surface";
+
+/** How long a swiped card takes to leave, ms. */
+const FLY_MS = 220;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Touch screens get the swipe hint; screens with a hovering pointer get the key hints.
+const TOUCH = "@media (hover: none) and (pointer: coarse)";
+const showOnTouch = { display: "none", [TOUCH]: { display: "block" } };
+const hideOnTouch = { [TOUCH]: { display: "none" } };
+
+/** A short row of key hints: `[[keys, label], ...]`, where keys is a list of key caps. */
+const KeyHints = ({ hints }) => (
+  <HStack gap='3' rowGap='1' wrap='wrap' justify='center' fontSize='xs' color='fg.muted' css={hideOnTouch} aria-hidden>
+    {hints.map(([keys, label]) => (
+      <HStack key={label} gap='1'>
+        {keys.map((key, i) => (
+          <Fragment key={key}>
+            {i > 0 && <Text as='span'>/</Text>}
+            <Kbd size='sm' colorPalette='gray'>{key}</Kbd>
+          </Fragment>
+        ))}
+        <Text as='span'>{label}</Text>
+      </HStack>
+    ))}
+  </HStack>
+);
+
+/**
+ * A colored edge and label that fade in as a card is dragged toward a grade. They sit on
+ * the trailing side (left for a right swipe), which stays on screen as the card moves.
+ */
+const SwipeEdge = ({ toward, strength }) => {
+  const state = toward === "right" ? "gotIt" : "forgot";
+  const side = toward === "right" ? "left" : "right";
+  return (
+    <Box position='absolute' insetY='0' {...{ [side]: 0 }} w='45%' zIndex='1' pointerEvents='none' opacity={strength} aria-hidden>
+      <Box position='absolute' insetY='0' {...{ [side]: 0 }} w='1.5' bg={`review.${state}.solid`} />
+      <Text
+        position='absolute'
+        top='40%'
+        boxShadow='raised'
+        {...{ [side]: "4" }}
+        px='3'
+        py='1'
+        rounded='full'
+        fontSize='sm'
+        fontWeight='700'
+        bg={`review.${state}.subtle`}
+        color={`review.${state}.fg`}
+        borderWidth='1px'
+        borderColor={`review.${state}.border`}
+      >
+        {toward === "right" ? "Got it" : "Forgot"}
+      </Text>
+    </Box>
+  );
+};
 
 const stateOf = (outcome) => {
   if (!outcome) return "due";
@@ -23,10 +81,13 @@ const stateOf = (outcome) => {
  * by revealing it and grading "Got it" or "Forgot". Every answer goes to `onAnswer(body)`,
  * which resolves to the API's `{ review, result }`; the card then reveals the lesson, the
  * right answer and when it comes back (dated in `timeZone`, the user's zone). `onContinue`
- * adds a button after the result. `shortcuts` turns on keys for a focused session:
- * Space shows the lesson, F / G grade forgot / got it, A-D pick a choice, Enter continues.
+ * adds a button after the result. `shortcuts` turns on keys for a focused session, with a
+ * hint row: Space shows the lesson, 1 / ← / F forgot, 2 / → / G got it, A-D pick a choice,
+ * Enter continues. `swipeable` lets a touch reader grade a revealed lesson by swiping it
+ * right (got it) or left (forgot); the card flies off and `onContinue` runs straight away.
+ * The buttons stay as the fallback either way.
  */
-const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "Next", timeZone, shortcuts = false }) => {
+const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "Next", timeZone, shortcuts = false, swipeable = false }) => {
   const { lesson } = review;
   const { title, body, code, quiz, author } = lesson;
   const [revealed, setRevealed] = useState(false);
@@ -35,22 +96,29 @@ const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [outcome, setOutcome] = useState(null);
+  const [flying, setFlying] = useState(null);
+  const reducedMotion = usePrefersReducedMotion();
   const state = stateOf(outcome);
   const answered = outcome !== null;
 
+  /** Sends one answer; resolves to whether it went through. */
   const submit = async (payload) => {
     setSubmitting(true);
     setError(null);
     try {
       setOutcome(await onAnswer(payload));
       setRevealed(true);
+      return true;
     } catch (err) {
       setPicked(null);
       setError(errorMessage(err));
+      return false;
     } finally {
       setSubmitting(false);
     }
   };
+
+  const grade = (value) => submit({ grade: value });
 
   const pick = (index) => {
     setPicked(index);
@@ -64,41 +132,89 @@ const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "
 
   const correctAnswer = outcome?.result.correctAnswer;
 
-  // The latest handlers for the key listener, so it is attached once per card.
-  const keys = useRef(null);
-  useEffect(() => {
-    keys.current = (event) => {
-      if (event.target.closest?.("input, textarea, select, [contenteditable=true]") || event.metaKey || event.ctrlKey || event.altKey) return;
-      const key = event.key.toLowerCase();
-      if (answered) {
-        if (key === "enter" && onContinue) {
-          event.preventDefault();
-          onContinue();
-        }
-        return;
+  useReviewKeys(shortcuts, (key, event) => {
+    if (flying) return;
+    if (answered) {
+      if ((key === "enter" || key === " ") && onContinue) {
+        event.preventDefault();
+        onContinue();
       }
-      if (submitting) return;
-      if (quiz?.kind === "choice") {
-        const index = "abcd".indexOf(key) >= 0 ? "abcd".indexOf(key) : "1234".indexOf(key);
-        if (index >= 0 && index < quiz.choices.length) pick(index);
-      } else if (!quiz) {
-        if (!revealed && (key === " " || key === "enter")) {
-          event.preventDefault();
-          setRevealed(true);
-        } else if (revealed && key === "f") submit({ grade: "forgot" });
-        else if (revealed && key === "g") submit({ grade: "got" });
+      return;
+    }
+    if (submitting) return;
+    if (quiz?.kind === "choice") {
+      const index = "abcd".indexOf(key) >= 0 ? "abcd".indexOf(key) : "1234".indexOf(key);
+      if (index >= 0 && index < quiz.choices.length) pick(index);
+    } else if (!quiz) {
+      if (!revealed && (key === " " || key === "enter")) {
+        event.preventDefault();
+        setRevealed(true);
+      } else if (revealed && ["1", "arrowleft", "f"].includes(key)) {
+        event.preventDefault();
+        grade("forgot");
+      } else if (revealed && ["2", "arrowright", "g"].includes(key)) {
+        event.preventDefault();
+        grade("got");
       }
-    };
+    }
   });
-  useEffect(() => {
-    if (!shortcuts) return undefined;
-    const onKey = (event) => keys.current?.(event);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [shortcuts]);
+
+  // A swipe grades, flies the card off and moves on; on an error the card springs back.
+  const swipe = async (direction) => {
+    setFlying(direction);
+    const [sent] = await Promise.all([grade(direction === "right" ? "got" : "forgot"), wait(reducedMotion ? 0 : FLY_MS)]);
+    if (sent && onContinue) onContinue();
+    else setFlying(null);
+  };
+  const canSwipe = swipeable && !quiz && revealed && !answered && !submitting && !flying;
+  const { bind, dx, progress, dragging } = useSwipe({ enabled: canSwipe, onSwipe: swipe });
+
+  // Reduced motion keeps the card under the finger but drops the tilt and the fly-off.
+  const flyX = flying === "right" ? "120%" : "-120%";
+  const motion = flying
+    ? {
+        transform: reducedMotion ? "none" : `translateX(${flyX}) rotate(${flying === "right" ? 12 : -12}deg)`,
+        opacity: 0,
+        transition: reducedMotion ? "opacity 120ms linear" : `transform ${FLY_MS}ms ease-in, opacity ${FLY_MS}ms ease-in`,
+      }
+    : {
+        transform: dx ? `translateX(${dx}px)${reducedMotion ? "" : ` rotate(${dx * 0.04}deg)`}` : "none",
+        transition: dragging || reducedMotion ? "none" : "transform 200ms ease-out",
+      };
+
+  const keyHints = answered
+    ? onContinue && [[["Enter"], continueLabel.toLowerCase()]]
+    : quiz?.kind === "choice"
+      ? [[["A", "B", "C", "D"].slice(0, quiz.choices.length), "pick an answer"]]
+      : quiz
+        ? null
+        : !revealed
+          ? [[["Space"], "show the lesson"]]
+          : [
+              [["1", "←"], "forgot"],
+              [["2", "→"], "got it"],
+            ];
 
   return (
-    <Surface as='article' borderTopWidth='4px' borderTopColor={`review.${state}.solid`} aria-live='polite'>
+    <Surface
+      as='article'
+      position='relative'
+      overflow='hidden'
+      borderTopWidth='4px'
+      borderTopColor={`review.${state}.solid`}
+      aria-live='polite'
+      touchAction={canSwipe ? "pan-y" : undefined}
+      userSelect={dragging ? "none" : undefined}
+      willChange={swipeable ? "transform" : undefined}
+      {...motion}
+      {...bind}
+    >
+      {canSwipe && (
+        <>
+          <SwipeEdge toward='left' strength={Math.max(0, -progress)} />
+          <SwipeEdge toward='right' strength={Math.max(0, progress)} />
+        </>
+      )}
       <Stack gap='4'>
         <HStack justify='space-between' gap='2' wrap='wrap'>
           <ReviewStateBadge state={state} />
@@ -214,17 +330,24 @@ const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "
             </Button>
           ) : (
             <HStack gap='3'>
-              <Button flex='1' colorPalette='clay' variant='subtle' rounded='full' onClick={() => submit({ grade: "forgot" })} disabled={submitting}>
+              <Button flex='1' colorPalette='clay' variant='subtle' rounded='full' onClick={() => grade("forgot")} disabled={submitting}>
                 <LuRotateCcw />
                 Forgot
               </Button>
-              <Button flex='1' colorPalette='sage' rounded='full' onClick={() => submit({ grade: "got" })} loading={submitting}>
+              <Button flex='1' colorPalette='sage' rounded='full' onClick={() => grade("got")} loading={submitting}>
                 <LuCheck />
                 Got it
               </Button>
             </HStack>
           ))
         )}
+
+        {canSwipe && (
+          <Text fontSize='xs' color='fg.muted' textAlign='center' css={showOnTouch}>
+            Swipe right for Got it, left for Forgot
+          </Text>
+        )}
+        {shortcuts && keyHints && <KeyHints hints={keyHints} />}
       </Stack>
     </Surface>
   );
