@@ -1,6 +1,6 @@
 // Form state, validation and payloads for the lesson composer. Rules mirror backend/API.md "Lesson input".
 
-export const LIMITS = { title: [3, 120], body: [1, 1000], code: 2000, link: 500, tags: 5, prompt: [3, 200], answer: 100 };
+export const LIMITS = { title: [3, 120], body: [1, 2000], code: 2000, link: 500, tags: 5, prompt: [3, 200], answer: 100 };
 
 export const LANGUAGES = ["js", "ts", "jsx", "tsx", "python", "css", "html", "bash", "sql", "json", "go", "rust", "java", "c", "cpp", "text"];
 

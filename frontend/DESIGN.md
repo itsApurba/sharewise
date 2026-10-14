@@ -35,6 +35,7 @@ Use these instead of raw palette steps, so dark mode works without extra code:
 - `border`, `border.muted` and `border.emphasized`.
 - `review.<state>.solid | subtle | fg | border`, where state is `due`, `gotIt`, `forgot` or `mastered`. Example: `borderTopColor="review.due.solid"`.
 - `streak` is the flame color.
+- `syntax.keyword | string | number | title | attr | comment` color highlighted code inside `CodeSnippet`. They are for code only and carry no review meaning there.
 
 Dark mode is a warm night (`gray.950` page, `gray.900` panels), not pure black. next-themes adds the `dark` class; Chakra's `_dark` condition follows it.
 
@@ -71,7 +72,9 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `SectionHeading` | An `h2` with an optional action on the right. |
 | `PreviewNotice` | A honey note marking a screen that shows sample data. Remove it when the screen gets real data. |
 | `Surface` | The card surface. Use it for any panel. |
-| `LessonCard` / `LessonCardSkeleton` | Author line, title, body, code, link, tags (linking to Explore), a quiz tag, and a "Remember this" footer. Takes an API Lesson. `footer` replaces the footer and `headerAction` adds a menu at the top right. `AuthorLine` and `CodeSnippet` (a string or `{ language, source }`) are exported from the same file for reuse. `components/lessons/LessonItem` wires it to the API (remember toggle, author edit/delete menu). |
+| `LessonCard` / `LessonCardSkeleton` | Author line, title, markdown body, code, link, tags (linking to Explore), a quiz tag, and a "Remember this" footer. Takes an API Lesson. With `to` the body is a short preview (about 280 characters, long code blocks cut to 6 lines) ending in "Read more"; without it the body renders in full. `footer` replaces the footer and `headerAction` adds a menu at the top right. `AuthorLine` is exported from the same file for reuse. `components/lessons/LessonItem` wires it to the API (remember toggle, author edit/delete menu). |
+| `Markdown` | Renders a lesson body as the safe markdown subset in `backend/API.md` (parsed by `src/lib/markdown.js` into React elements, so no HTML is ever injected). `limit` makes a preview and `more` is shown after it when text was cut. |
+| `CodeSnippet` | A code block (a string or `{ language, source }`) that scrolls inside its own box, with a copy button and syntax highlighting in the `syntax.*` colors. highlight.js and its grammars load lazily on the first snippet (`useHighlightedCode` in `src/hooks/useRichText.js`); until then the plain source shows. |
 | `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back (an API Review). A choice quiz is answered by picking, a free-answer quiz by typing (or "Show answer", which counts as forgot), and a lesson without a quiz by "Show the lesson" then "Got it" or "Forgot". Each answer goes to `onAnswer(body)`, which resolves to the API's `{ review, result }`; the card then colors itself by the result, reveals the lesson and answer, and says when it comes back. `onContinue` adds a button after the result. `shortcuts` adds window keys and a hint row of key caps (hidden on touch screens): Space shows the lesson, 1 / ← / F forgot, 2 / → / G got it, A-D pick a choice, Enter or Space continues. `swipeable` lets touch readers grade a revealed lesson by swiping right (got it) or left (forgot), with a sage or clay edge and label fading in on the trailing side; the card then flies off and `onContinue` runs at once. The buttons stay as the accessible fallback. The gesture and key hooks are in `hooks/useReviewGestures.js`. |
 | `QuizChoices` | Lettered answer buttons, graded by the caller. `onPick(index)` fires on the first pick and locks the group; once `correctIndex` is known it shows the right answer in sage and a wrong `picked` in clay. |
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
@@ -99,7 +102,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/settings/profile` | Edit my profile, log out, delete account | Real data |
 | `/lesson/:id` | Lesson detail | Real: remember toggle, inline quiz, author menu |
 | `/lesson/:id/edit` | Edit lesson | Real, author only |
-| `/new` | Lesson composer | Real, with validation, quiz builder and preview |
+| `/new` | Lesson composer | Real, with validation, a Write/Preview toggle for the markdown body, quiz builder and card preview |
 | `/login`, `/signup` | Auth (own layout, no nav). `?next=` is where to go afterwards | Real data |
 | `/welcome` | Onboarding after sign-up: suggested people to follow (own layout) | Real data |
 | `/post`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |

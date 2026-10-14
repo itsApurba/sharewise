@@ -183,7 +183,7 @@ Profile:
 | Field | Rule |
 |---|---|
 | `title` | required on create, 3-120 characters |
-| `body` | required on create, 1-1000 characters of plain text (the UI may render light markdown) |
+| `body` | required on create, 1-2000 characters. Stored as written; clients render it as a safe markdown subset: paragraphs, `-` / `1.` lists, fenced ```` ``` ```` code blocks with a language, `**bold**`, `*italic*`, `` `inline code` ``, `[text](https://…)` and bare http(s) URLs. Raw HTML is shown as text, and only http(s) links become links |
 | `code` | optional `{ "language": "js", "source": "…" }` or `null`. `source` 1-2000 characters (trailing whitespace trimmed); `language` a short lowercase name (`a-z 0-9 + # . -`, up to 20), default `"text"` |
 | `link` | optional `http(s)` URL up to 500 characters, or `null` / `""` for none |
 | `tags` | optional array of up to 5 tags. Each is trimmed, lowercased and stripped of a leading `#`; duplicates collapse. A tag is 1-24 characters of `a-z 0-9 + # . -`, starting with a letter or digit |
