@@ -6,6 +6,8 @@
 const PASSWORD = "sharewise123";
 
 // `active` lists the local days (0 = today, -1 = yesterday) on which the user answers every due card.
+// `history` shapes the older review log behind the activity heatmap (days -84 to -22): `rate` is the share of
+// days with reviews, `peak` the most reviews in a day, and `weekdays` keeps Saturdays and Sundays empty.
 const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
 const users = [
@@ -17,6 +19,7 @@ const users = [
     timezone: "America/New_York",
     follows: ["omar", "priya", "sam"],
     active: [...range(-21, -16), ...range(-14, -1)],
+    history: { rate: 0.75, peak: 3 },
   },
   {
     name: "Omar Haddad",
@@ -26,6 +29,7 @@ const users = [
     timezone: "Europe/Berlin",
     follows: ["maya", "lena"],
     active: [...range(-21, -12), ...range(-5, -1)],
+    history: { rate: 0.55, peak: 3 },
   },
   {
     name: "Priya Nair",
@@ -35,6 +39,7 @@ const users = [
     timezone: "Asia/Kolkata",
     follows: ["maya", "sam", "lena"],
     active: range(-21, -1),
+    history: { rate: 0.9, peak: 4 },
   },
   {
     name: "Sam Okafor",
@@ -44,6 +49,7 @@ const users = [
     timezone: "UTC",
     follows: ["maya", "priya"],
     active: range(-9, -3),
+    history: { rate: 0.3, peak: 2 },
   },
   {
     name: "Lena Vogel",
@@ -53,6 +59,7 @@ const users = [
     timezone: "America/Los_Angeles",
     follows: ["omar", "priya"],
     active: [...range(-12, -8), ...range(-3, -1)],
+    history: { rate: 0.6, peak: 3, weekdays: true },
   },
 ];
 

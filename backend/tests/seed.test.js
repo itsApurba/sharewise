@@ -52,6 +52,8 @@ describe("demo seed", () => {
       assert.ok(due.some((r) => !r.lesson.quiz), `${handle} has a plain card due`);
       assert.ok(due.some((r) => r.lesson.quiz?.kind === "choice"), `${handle} has a choice quiz due`);
       assert.ok(stats.bestStreak >= 2, `${handle} has history`);
+      const activity = (await api().get(`/api/users/${handle}/activity`)).body;
+      assert.ok(activity.activeDays >= 15, `${handle} has a lively heatmap (${activity.activeDays} days)`);
       streaks[handle] = stats.currentStreak;
 
       const feed = (await api().get("/api/feed").set(...auth)).body;

@@ -6,7 +6,7 @@ const { assertValid, badRequest, notFound } = require("../../lib/errors");
 const { pagination, pageOf } = require("../../lib/validate");
 const { deleteUser } = require("../services/cascade");
 const { AUTHOR_FIELDS, lessonViews, me, publicUser, userSummary } = require("../services/serialize");
-const { userStats } = require("../services/stats");
+const { userActivity, userStats } = require("../services/stats");
 const { profileFields } = require("./auth.controller");
 
 async function byHandle(handle) {
@@ -60,6 +60,20 @@ exports.getProfile = async (req, res) => {
     stats: { currentStreak: stats.currentStreak, bestStreak: stats.bestStreak, mastered: stats.mastered },
     viewer: viewer ? { isSelf: String(viewer._id) === String(user._id), isFollowing: Boolean(isFollowing) } : null,
   });
+};
+
+/** `?days=` for the activity heatmap: 7-371, default 84 (twelve weeks). */
+function activityDays(query) {
+  if (query.days === undefined) return 84;
+  const days = Number(query.days);
+  if (!Number.isInteger(days) || days < 7 || days > 371) throw badRequest("Invalid days", { days: "Days must be an integer from 7 to 371" });
+  return days;
+}
+
+exports.getActivity = async (req, res) => {
+  const days = activityDays(req.query);
+  const user = await byHandle(req.params.handle);
+  res.json(await userActivity(user, clock.now(), days));
 };
 
 exports.getUserLessons = async (req, res) => {

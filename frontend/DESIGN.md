@@ -81,6 +81,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
 | `StatTile` | A label and a big number, tinted by `palette`. |
 | `WeekChart` | Seven columns of reviews per day, today last, with values on the caps and a hidden table for screen readers. `days` is `[{ date, count }]`. |
+| `ActivityHeatmap` | A GitHub-style grid of reviews per day: one column per week (Sunday on top), ember shades by quarter of the busiest day, a Less/More legend. Hovering, focusing or tapping a cell shows its date and count in the line below. It scrolls sideways inside its card, never the page. `days` is `[{ date, count }]`, oldest first. `components/activity/ActivityPanel` wraps it in a card with totals for a handle (on profiles and Stats). |
 | `EmptyState` | A dashed panel with an icon, title, guidance and an optional action. |
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |
@@ -96,8 +97,8 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/` | Feed | Real: lessons mixed with due reviews, infinite scroll; a welcome plus newest lessons when logged out |
 | `/explore` | Explore | Real, public; `?tag=` filters |
 | `/review` | Review queue | Real: one due card at a time, swipe or keys to grade, progress, the last card's result, done state |
-| `/stats` | Stats | Real data: your streak and progress, top lessons and teachers, community totals |
-| `/u/:handle` | Profile (`?tab=followers` or `following` picks the list) | Real data |
+| `/stats` | Stats | Real data: your streak and progress, a twelve-week activity heatmap, top lessons and teachers, community totals |
+| `/u/:handle` | Profile with a twelve-week activity heatmap (`?tab=followers` or `following` picks the list) | Real data |
 | `/profile` | Redirects to the signed-in user's profile | Done |
 | `/settings/profile` | Edit my profile, log out, delete account | Real data |
 | `/lesson/:id` | Lesson detail | Real: remember toggle, inline quiz, author menu |
