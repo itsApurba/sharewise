@@ -4,7 +4,9 @@ import { LuArrowRight, LuCalendarClock, LuCheck, LuEye, LuRotateCcw } from "reac
 import { Link } from "react-router-dom";
 import { errorMessage } from "../../api/client";
 import { nextReviewSentence } from "../../lib/format";
-import { AuthorLine, CodeSnippet } from "./LessonCard";
+import CodeSnippet from "./CodeSnippet";
+import { AuthorLine } from "./LessonCard";
+import Markdown from "./Markdown";
 import QuizChoices from "./QuizChoices";
 import ReviewStateBadge from "./ReviewStateBadge";
 import Surface from "./Surface";
@@ -175,9 +177,7 @@ const ReviewCard = ({ review, stepLabel, onAnswer, onContinue, continueLabel = "
                   </Text>
                 </Link>
               )}
-              <Text textStyle='lesson' whiteSpace='pre-wrap' overflowWrap='anywhere'>
-                {body}
-              </Text>
+              <Markdown source={body} />
               {code && <CodeSnippet code={code} />}
               {author && <AuthorLine author={author} meta='taught this' />}
             </Stack>

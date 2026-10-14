@@ -1,7 +1,8 @@
 import { Box, Button, Field, HStack, IconButton, Input, NativeSelect, Stack, Switch, Tag, Text, Textarea, Wrap } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { LuCheck, LuEye, LuEyeOff, LuPlus, LuX } from "react-icons/lu";
+import { LuCheck, LuEye, LuEyeOff, LuPencil, LuPlus, LuX } from "react-icons/lu";
 import LessonCard from "../ds/LessonCard";
+import Markdown from "../ds/Markdown";
 import Surface from "../ds/Surface";
 import { LANGUAGES, LIMITS, clearDraft, emptyForm, loadDraft, parseTags, previewLesson, saveDraft, validate } from "./lessonForm";
 
@@ -18,7 +19,7 @@ const Counter = ({ value, max }) => (
 );
 
 /**
- * The lesson form: title, body, optional code snippet, link and tags, and an optional quiz
+ * The lesson form: title, markdown body (with a Write/Preview toggle), optional code snippet, link and tags, and an optional quiz
  * (free-text answer or 2-4 choices with one marked correct). Errors show after the first
  * submit and then update live. `serverErrors` are the API's `fields`, keyed the same way.
  * With `draftKey`, the unsent form is kept in this browser and restored on the next visit.
@@ -39,6 +40,7 @@ const LessonComposer = ({ initial, author, submitLabel, submitting, serverErrors
   };
   const [attempted, setAttempted] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [bodyMode, setBodyMode] = useState("write");
   const [dirtySinceServer, setDirtySinceServer] = useState({});
 
   const set = (patch) => {
@@ -90,9 +92,51 @@ const LessonComposer = ({ initial, author, submitLabel, submitting, serverErrors
           </Field.Root>
 
           <Field.Root invalid={Boolean(errorFor("body"))} required>
-            <Field.Label>Lesson</Field.Label>
-            <Textarea value={form.body} onChange={(e) => set({ body: e.target.value })} rows={5} placeholder='Explain one idea in a few sentences.' autoresize maxH='20lh' />
-            {errorFor("body") ? <Field.ErrorText>{errorFor("body")}</Field.ErrorText> : <Counter value={form.body.trim().length} max={LIMITS.body[1]} />}
+            <HStack justify='space-between' w='full' gap='2'>
+              <Field.Label>Lesson</Field.Label>
+              <HStack gap='1' role='group' aria-label='Lesson editor mode'>
+                {[
+                  ["write", "Write", <LuPencil key='i' />],
+                  ["preview", "Preview", <LuEye key='i' />],
+                ].map(([mode, label, icon]) => (
+                  <Button
+                    key={mode}
+                    size='xs'
+                    rounded='full'
+                    variant={bodyMode === mode ? "subtle" : "ghost"}
+                    colorPalette='gray'
+                    aria-pressed={bodyMode === mode}
+                    onClick={() => setBodyMode(mode)}
+                  >
+                    {icon}
+                    {label}
+                  </Button>
+                ))}
+              </HStack>
+            </HStack>
+            {bodyMode === "write" ? (
+              <Textarea value={form.body} onChange={(e) => set({ body: e.target.value })} rows={5} placeholder='Explain one idea in a few sentences.' autoresize maxH='20lh' />
+            ) : (
+              <Box w='full' minH='7.5rem' px='3' py='2' rounded='control' borderWidth='1px' borderColor='border' bg='bg.panel'>
+                {form.body.trim() ? (
+                  <Markdown source={form.body} />
+                ) : (
+                  <Text color='fg.muted' textStyle='lesson'>
+                    Nothing to preview yet.
+                  </Text>
+                )}
+              </Box>
+            )}
+            {errorFor("body") ? (
+              <Field.ErrorText>{errorFor("body")}</Field.ErrorText>
+            ) : (
+              <HStack justify='space-between' align='flex-start' w='full' gap='3'>
+                <Field.HelperText>
+                  Markdown works: **bold**, *italic*, `code`, - lists, [links](https://…) and ``` code blocks.
+                </Field.HelperText>
+                <Counter value={form.body.trim().length} max={LIMITS.body[1]} />
+              </HStack>
+            )}
           </Field.Root>
 
           <Stack gap='3'>
@@ -274,7 +318,7 @@ const LessonComposer = ({ initial, author, submitLabel, submitting, serverErrors
           <Stack direction={{ base: "column-reverse", sm: "row" }} gap='3' justify='flex-end'>
             <Button variant='ghost' colorPalette='gray' rounded='full' onClick={() => setShowPreview(!showPreview)}>
               {showPreview ? <LuEyeOff /> : <LuEye />}
-              {showPreview ? "Hide preview" : "Preview"}
+              {showPreview ? "Hide card preview" : "Preview card"}
             </Button>
             {onCancel && (
               <Button variant='outline' colorPalette='gray' rounded='full' onClick={onCancel}>

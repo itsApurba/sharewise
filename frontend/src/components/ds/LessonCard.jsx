@@ -2,6 +2,8 @@ import { Box, Button, HStack, Heading, Icon, Link as ChakraLink, Skeleton, Skele
 import { LuBookmarkCheck, LuBookmarkPlus, LuCircleHelp, LuExternalLink } from "react-icons/lu";
 import { Link } from "react-router-dom";
 import { timeAgo } from "../../lib/format";
+import CodeSnippet from "./CodeSnippet";
+import Markdown from "./Markdown";
 import StreakAvatar from "./StreakAvatar";
 import Surface from "./Surface";
 
@@ -31,43 +33,12 @@ export const AuthorLine = ({ author, meta }) => {
   );
 };
 
-/**
- * A code snippet that scrolls inside its own box, never the page.
- * `code` is a string or the API's `{ language, source }`.
- */
-export const CodeSnippet = ({ code }) => {
-  const source = typeof code === "string" ? code : code.source;
-  const language = typeof code === "string" ? null : code.language;
-  return (
-    <Box position='relative' minW='0'>
-      {language && language !== "text" && (
-        <Text position='absolute' top='1.5' right='2.5' fontFamily='mono' fontSize='2xs' color='fg.muted' textTransform='uppercase' pointerEvents='none'>
-          {language}
-        </Text>
-      )}
-      <Box
-        as='pre'
-        fontFamily='mono'
-        fontSize='sm'
-        lineHeight='1.6'
-        bg='bg.muted'
-        rounded='control'
-        px='3'
-        pt={language && language !== "text" ? "5" : "2.5"}
-        pb='2.5'
-        overflowX='auto'
-        maxW='full'
-        tabIndex={0}
-        aria-label={language ? `${language} code` : "Code"}
-      >
-        <code>{source}</code>
-      </Box>
-    </Box>
-  );
-};
+/** Characters of body a card shows before "Read more" (the lesson page shows it all). */
+const CARD_PREVIEW_LIMIT = 280;
 
 /**
- * A bite-size lesson: author, optional title, short text, optional code and link, tags.
+ * A bite-size lesson: author, optional title, markdown body, optional code and link, tags.
+ * With `to` (a link to the lesson page) the body is a short preview with "Read more".
  * The footer defaults to the "Remember this" action; pass `footer` to replace it.
  */
 const LessonCard = ({ lesson, to, remembered = false, rememberBusy = false, onRemember, footer, headerAction }) => {
@@ -87,9 +58,15 @@ const LessonCard = ({ lesson, to, remembered = false, rememberBusy = false, onRe
         </HStack>
         {titleNode && (to ? <Link to={to}>{titleNode}</Link> : titleNode)}
         {body && (
-          <Text textStyle='lesson' whiteSpace='pre-wrap' overflowWrap='anywhere'>
-            {body}
-          </Text>
+          <Markdown
+            source={body}
+            limit={to ? CARD_PREVIEW_LIMIT : undefined}
+            more={
+              <Text asChild fontSize='sm' fontWeight='600' color='brand.fg' alignSelf='flex-start' _hover={{ textDecoration: "underline" }}>
+                <Link to={to}>Read more</Link>
+              </Text>
+            }
+          />
         )}
         {code && <CodeSnippet code={code} />}
         {link && (
