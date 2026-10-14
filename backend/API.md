@@ -157,6 +157,7 @@ A missing field is `400`; an unknown email or wrong password is `401` "Invalid e
 | `PATCH /users/me` | auth | Body: any of `name`, `handle`, `bio`, `timezone` (same rules as sign-up). `200 { "user": Me }`. Sending `email` or `password` is a `400`; an empty body is a `400`; a taken handle is `409`. |
 | `DELETE /users/me` | auth | `204`. Deletes the account, the user's lessons (and everyone's review cards and quiz answers on them), the user's own cards, review history, quiz answers and follows in both directions. Other users keep their own review history. |
 | `GET /users/:handle` | optional | Profile, below. `404` for an unknown handle. |
+| `GET /users/:handle/activity?days=` | public | Activity heatmap, below. `days` is 7-371, default 84 (twelve weeks). |
 | `GET /users/:handle/lessons` | optional | Page of Lesson, newest first. |
 | `GET /users/:handle/followers` | public | Page of PublicUser, most recent follow first. |
 | `GET /users/:handle/following` | public | Page of PublicUser, most recent follow first. |
@@ -175,6 +176,19 @@ Profile:
 ```
 
 `viewer` is `null` when logged out. `stats` follow [Streaks and time zones](#streaks-and-time-zones) in the profile owner's time zone.
+
+Activity heatmap (reviews answered per day, for the profile and Stats heatmaps):
+
+```json
+{
+  "timezone": "Asia/Kolkata", "total": 159, "activeDays": 79,
+  "days": [{ "date": "2026-07-23", "count": 1 }, "… one entry per day …", { "date": "2026-10-14", "count": 0 }]
+}
+```
+
+`days` has exactly `days` entries, oldest first, today last, in the profile owner's time zone (the same day rule as
+`reviewsByDay` and streaks); days with no answers have `count: 0`. `total` sums the counts and `activeDays` counts days
+with at least one answer.
 
 ## Lessons
 
@@ -353,7 +367,8 @@ for past answers. A card's `dueAt` is computed with the zone the user had when t
 
 `npm run seed` (needs `MONGO_URI`) loads a demo community: 5 users, 26 lessons on JS, CSS, Git, DSA and career
 (quizzes on half of them), follows, and three weeks of simulated review history, so streaks, mastered lessons and
-due reviews exist on the first day. Every demo user's password is **`sharewise123`**:
+due reviews exist on the first day. Before those three weeks, each demo user also gets review history back to twelve
+weeks ago in their own rhythm, so every profile's activity heatmap is filled in. Every demo user's password is **`sharewise123`**:
 
 | Name | Email | Handle |
 |---|---|---|

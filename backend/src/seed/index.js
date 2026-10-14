@@ -2,7 +2,9 @@
  * The idempotent demo seed (see API.md, "Demo seed"). Demo users and lessons are
  * upserted; the demo users' follows, cards, quiz answers and review history are
  * rebuilt by replaying three weeks of reviews through the real scheduler, ending
- * yesterday, so streaks, mastered lessons and due reviews exist today.
+ * yesterday, so streaks, mastered lessons and due reviews exist today. Older review
+ * history (to HISTORY_DAYS ago) is logged straight from each user's `history` pattern
+ * so the twelve-week activity heatmap is filled in.
  */
 const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
@@ -20,6 +22,7 @@ const data = require("./data");
 
 const HOUR_MS = 60 * 60 * 1000;
 const FIRST_DAY = -21;
+const HISTORY_DAYS = 84;
 const MAX_REMEMBERS = 12;
 /** Reviews each demo user has waiting today, at least. */
 const DUE_TODAY = 2;
@@ -101,6 +104,29 @@ function simulate(user, active, lessons, now) {
   };
 }
 
+/**
+ * Review log rows for the days before the simulation. They only feed history (heatmap, streaks,
+ * review totals); the cards themselves come from `simulate`.
+ */
+function history(user, { rate, peak, weekdays = false }, lessons, now) {
+  const tz = user.timezone;
+  const pool = lessons.filter((l) => String(l.author) !== String(user._id));
+  const logs = [];
+  for (let day = 1 - HISTORY_DAYS; day < FIRST_DAY; day += 1) {
+    const start = startOfLocalDay(now, tz, day);
+    const weekday = new Date(start.getTime() + 12 * HOUR_MS).toLocaleDateString("en-US", { weekday: "short", timeZone: tz });
+    if (weekdays && (weekday === "Sat" || weekday === "Sun")) continue;
+    if (hash(user.handle, "history", day) % 100 >= rate * 100) continue;
+    const count = 1 + (hash(user.handle, "count", day) % peak);
+    for (let n = 0; n < count; n += 1) {
+      const lesson = pool[hash(user.handle, day, n) % pool.length];
+      const grade = hash(user.handle, "grade", day, n) % 5 === 0 ? "forgot" : "got";
+      logs.push({ user: user._id, lesson: lesson._id, grade, interval: grade === "got" ? 6 : 1, reviewedAt: new Date(start.getTime() + (8 + n) * HOUR_MS) });
+    }
+  }
+  return logs;
+}
+
 /** Seeds the demo community as of `now`. Safe to run repeatedly. */
 async function seed({ now = new Date() } = {}) {
   await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
@@ -126,7 +152,7 @@ async function seed({ now = new Date() } = {}) {
     }
     const result = simulate(user, new Set(spec.active), lessons, now);
     cards.push(...result.cards);
-    logs.push(...result.logs);
+    logs.push(...history(user, spec.history, lessons, now), ...result.logs);
     attempts.push(...result.attempts);
   }
   await Promise.all([

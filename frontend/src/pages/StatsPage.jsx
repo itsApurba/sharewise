@@ -1,6 +1,7 @@
 import { Box, Button, HStack, Icon, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { LuBookOpen, LuBrain, LuCalendarCheck, LuFlame, LuGraduationCap, LuTrophy, LuUsers } from "react-icons/lu";
 import { Link } from "react-router-dom";
+import ActivityPanel from "../components/activity/ActivityPanel";
 import EmptyState from "../components/ds/EmptyState";
 import { PageContainer, PageHeader, SectionHeading } from "../components/ds/Page";
 import { ListSkeleton, StatTilesSkeleton } from "../components/ds/Skeletons";
@@ -73,7 +74,7 @@ const StreakPanel = ({ stats }) => {
   );
 };
 
-const MyProgress = () => {
+const MyProgress = ({ handle }) => {
   const { data: stats, isLoading, isError } = useMyStats();
   if (isLoading)
     return (
@@ -120,6 +121,7 @@ const MyProgress = () => {
           <WeekChart days={stats.reviewsByDay} />
         </Surface>
       )}
+      <ActivityPanel handle={handle} />
     </Stack>
   );
 };
@@ -226,7 +228,7 @@ const StatsPage = () => {
     <PageContainer width='wide'>
       <PageHeader eyebrow='Progress' title='Stats' description='What you remember, and who taught it.' />
       <Stack gap='8'>
-        {isLoading ? <StatTilesSkeleton count={3} /> : me ? <MyProgress /> : <SignupNudge />}
+        {isLoading ? <StatTilesSkeleton count={3} /> : me ? <MyProgress handle={me.handle} /> : <SignupNudge />}
 
         <SimpleGrid columns={{ base: 1, lg: 2 }} gap='6'>
           <Box minW='0'>

@@ -9,6 +9,7 @@ router.patch("/me", requireAuth, users.updateMe);
 router.delete("/me", requireAuth, users.deleteMe);
 
 router.get("/:handle", optionalAuth, users.getProfile);
+router.get("/:handle/activity", users.getActivity);
 router.get("/:handle/lessons", optionalAuth, users.getUserLessons);
 router.get("/:handle/followers", users.getFollowers);
 router.get("/:handle/following", users.getFollowing);

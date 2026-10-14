@@ -134,3 +134,36 @@ describe("my stats", () => {
     assert.equal((await api().get("/api/analytics/me")).status, 401);
   });
 });
+
+describe("activity heatmap", () => {
+  it("counts reviews per local day over the requested window, oldest first", async () => {
+    clock.set("2026-03-10T12:00:00Z");
+    const maya = await signup("maya");
+    const omar = await signup("omar", { timezone: "Asia/Kolkata" });
+    const lesson = await createLesson(maya, { title: "Lesson" });
+    const ReviewLog = require("../src/api/models/reviewLog.model");
+    const log = (reviewedAt) => ({ user: omar.user.id, lesson: lesson.id, grade: "got", interval: 1, reviewedAt: new Date(reviewedAt) });
+    // 20:00Z on the 8th is already the 9th in Kolkata (UTC+5:30).
+    await ReviewLog.create([log("2026-03-08T20:00:00Z"), log("2026-03-09T05:00:00Z"), log("2026-03-10T06:00:00Z"), log("2025-11-01T06:00:00Z")]);
+
+    const res = await api().get("/api/users/omar/activity?days=7").expect(200);
+    assert.equal(res.body.timezone, "Asia/Kolkata");
+    assert.equal(res.body.total, 3);
+    assert.equal(res.body.activeDays, 2);
+    assert.deepEqual(
+      res.body.days.map((d) => [d.date, d.count]),
+      [["2026-03-04", 0], ["2026-03-05", 0], ["2026-03-06", 0], ["2026-03-07", 0], ["2026-03-08", 0], ["2026-03-09", 2], ["2026-03-10", 1]]
+    );
+
+    const full = (await api().get("/api/users/omar/activity").expect(200)).body;
+    assert.equal(full.days.length, 84);
+    assert.equal(full.days.at(-1).date, "2026-03-10");
+    assert.equal(full.total, 3);
+  });
+
+  it("validates days and 404s unknown handles", async () => {
+    await signup("maya");
+    for (const days of ["6", "372", "abc", "7.5"]) assert.equal((await api().get(`/api/users/maya/activity?days=${days}`)).status, 400, days);
+    assert.equal((await api().get("/api/users/nobody/activity")).status, 404);
+  });
+});

@@ -49,6 +49,8 @@ describe("demo seed", () => {
       const { stats } = (await api().get("/api/analytics/me").set(...auth)).body;
       assert.ok(stats.dueToday >= 2, `${handle} has reviews due`);
       assert.ok(stats.bestStreak >= 2, `${handle} has history`);
+      const activity = (await api().get(`/api/users/${handle}/activity`)).body;
+      assert.ok(activity.activeDays >= 15, `${handle} has a lively heatmap (${activity.activeDays} days)`);
       streaks[handle] = stats.currentStreak;
 
       const feed = (await api().get("/api/feed").set(...auth)).body;

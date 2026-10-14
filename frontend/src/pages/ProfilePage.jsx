@@ -2,6 +2,7 @@ import { Badge, Box, Button, HStack, Heading, Icon, SimpleGrid, Stack, Text, Wra
 import { LuBookOpen, LuCalendar, LuCheck, LuFlame, LuPencil, LuPlus, LuTrophy, LuUserMinus, LuUserPlus } from "react-icons/lu";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { apiError } from "../api/client";
+import ActivityPanel from "../components/activity/ActivityPanel";
 import PeopleList from "../components/auth/PeopleList";
 import EmptyState from "../components/ds/EmptyState";
 import LessonCard from "../components/ds/LessonCard";
@@ -238,6 +239,8 @@ const ProfilePage = () => {
             </Badge>
           </Wrap>
         </Stack>
+
+        <ActivityPanel handle={user.handle} />
 
         <SimpleGrid columns={3} gap='3' role='group' aria-label='Show lessons, followers or following'>
           <CountTile label='Lessons' value={counts.lessons} active={tab === "lessons"} onClick={() => setTab("lessons")} />
