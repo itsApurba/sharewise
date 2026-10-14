@@ -5,6 +5,7 @@ const lessonRoutes = require("./lesson.route");
 const reviewRoutes = require("./review.route");
 const feedRoutes = require("./feed.route");
 const analyticsRoutes = require("./analytics.route");
+const deckRoutes = require("./deck.route");
 
 const router = express.Router();
 
@@ -16,5 +17,6 @@ router.use("/lessons", lessonRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/feed", feedRoutes);
 router.use("/analytics", analyticsRoutes);
+router.use("/decks", deckRoutes);
 
 module.exports = router;

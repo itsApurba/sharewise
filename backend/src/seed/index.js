@@ -1,5 +1,5 @@
 /**
- * The idempotent demo seed (see API.md, "Demo seed"). Demo users and lessons are
+ * The idempotent demo seed (see API.md, "Demo seed"). Demo users, lessons and decks are
  * upserted; the demo users' follows, cards, quiz answers and review history are
  * rebuilt by replaying three weeks of reviews through the real scheduler, ending
  * yesterday, so streaks, mastered lessons and due reviews exist today.
@@ -7,6 +7,7 @@
 const crypto = require("node:crypto");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const Deck = require("../api/models/deck.model");
 const Follow = require("../api/models/follow.model");
 const Lesson = require("../api/models/lesson.model");
 const QuizAttempt = require("../api/models/quizAttempt.model");
@@ -50,6 +51,16 @@ async function upsertLessons(users, now) {
     lessons.push(lesson);
   }
   return lessons;
+}
+
+async function upsertDecks(users, lessons, now) {
+  const byTitle = new Map(lessons.map((l) => [l.title, l._id]));
+  for (const { owner, lessons: titles, ...content } of data.decks) {
+    const deck = (await Deck.findOne({ owner: users[owner]._id, title: content.title })) || new Deck({ owner: users[owner]._id });
+    deck.set({ ...content, lessons: titles.map((title) => byTitle.get(title)), createdAt: now, updatedAt: now });
+    await deck.save({ timestamps: false });
+  }
+  return data.decks.length;
 }
 
 /**
@@ -106,6 +117,7 @@ async function seed({ now = new Date() } = {}) {
   await Promise.all(Object.values(mongoose.models).map((model) => model.init()));
   const users = await upsertUsers();
   const lessons = await upsertLessons(users, now);
+  const decks = await upsertDecks(users, lessons, now);
   const ids = Object.values(users).map((u) => u._id);
 
   await Promise.all([
@@ -135,7 +147,7 @@ async function seed({ now = new Date() } = {}) {
     logs.length && ReviewLog.collection.insertMany(logs),
     attempts.length && QuizAttempt.collection.insertMany(attempts),
   ]);
-  return { users: ids.length, lessons: lessons.length, follows: follows.length, reviews: cards.length, reviewLogs: logs.length };
+  return { users: ids.length, lessons: lessons.length, decks, follows: follows.length, reviews: cards.length, reviewLogs: logs.length };
 }
 
 module.exports = { seed };
