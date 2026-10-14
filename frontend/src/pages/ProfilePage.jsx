@@ -3,6 +3,7 @@ import { LuBookOpen, LuCalendar, LuCheck, LuFlame, LuPencil, LuPlus, LuTrophy, L
 import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { apiError } from "../api/client";
+import ActivityPanel from "../components/activity/ActivityPanel";
 import PeopleList from "../components/auth/PeopleList";
 import EmptyState from "../components/ds/EmptyState";
 import LessonCard from "../components/ds/LessonCard";
@@ -275,6 +276,8 @@ const ProfilePage = () => {
             </Badge>
           </Wrap>
         </Stack>
+
+        <ActivityPanel handle={user.handle} />
 
         <ProfileDecks handle={user.handle} isSelf={isSelf} />
 

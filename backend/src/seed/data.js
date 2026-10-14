@@ -6,6 +6,8 @@
 const PASSWORD = "sharewise123";
 
 // `active` lists the local days (0 = today, -1 = yesterday) on which the user answers every due card.
+// `history` shapes the older review log behind the activity heatmap (days -84 to -22): `rate` is the share of
+// days with reviews, `peak` the most reviews in a day, and `weekdays` keeps Saturdays and Sundays empty.
 const range = (from, to) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
 
 const users = [
@@ -17,6 +19,7 @@ const users = [
     timezone: "America/New_York",
     follows: ["omar", "priya", "sam"],
     active: [...range(-21, -16), ...range(-14, -1)],
+    history: { rate: 0.75, peak: 3 },
   },
   {
     name: "Omar Haddad",
@@ -26,6 +29,7 @@ const users = [
     timezone: "Europe/Berlin",
     follows: ["maya", "lena"],
     active: [...range(-21, -12), ...range(-5, -1)],
+    history: { rate: 0.55, peak: 3 },
   },
   {
     name: "Priya Nair",
@@ -35,6 +39,7 @@ const users = [
     timezone: "Asia/Kolkata",
     follows: ["maya", "sam", "lena"],
     active: range(-21, -1),
+    history: { rate: 0.9, peak: 4 },
   },
   {
     name: "Sam Okafor",
@@ -44,6 +49,7 @@ const users = [
     timezone: "UTC",
     follows: ["maya", "priya"],
     active: range(-9, -3),
+    history: { rate: 0.3, peak: 2 },
   },
   {
     name: "Lena Vogel",
@@ -53,6 +59,7 @@ const users = [
     timezone: "America/Los_Angeles",
     follows: ["omar", "priya"],
     active: [...range(-12, -8), ...range(-3, -1)],
+    history: { rate: 0.6, peak: 3, weekdays: true },
   },
 ];
 
@@ -109,7 +116,7 @@ const lessons = [
     author: "maya",
     ago: 2,
     title: "Debounce search inputs",
-    body: "Debouncing runs a handler only after events stop for a while, so a search box sends one request when the user pauses instead of one per keystroke. Throttling is different: it runs at most once per interval while events keep coming.",
+    body: "**Debouncing** runs a handler only after events *stop* for a while, so a search box sends one request when the user pauses instead of one per keystroke.\n\n- **Debounce:** wait for a pause, then run once. Search boxes, autosave.\n- **Throttle:** run at most once per interval while events keep coming. Scroll and resize handlers.\n\nThe whole trick is one `clearTimeout` before each new `setTimeout`.",
     code: {
       language: "js",
       source: "function debounce(fn, ms) {\n  let timer;\n  return (...args) => {\n    clearTimeout(timer);\n    timer = setTimeout(() => fn(...args), ms);\n  };\n}",
@@ -252,7 +259,7 @@ const lessons = [
     author: "priya",
     ago: 22,
     title: "BFS finds shortest paths in unweighted graphs",
-    body: "Breadth-first search explores level by level with a queue, so the first time it reaches a node is along a shortest path (counted in edges). Once edges have different weights, switch to Dijkstra.",
+    body: "Breadth-first search explores level by level with a **queue**, so the first time it reaches a node is along a shortest path (counted in edges).\n\n```python\nfrom collections import deque\n\ndef shortest(graph, start, goal):\n    dist = {start: 0}\n    queue = deque([start])\n    while queue:\n        node = queue.popleft()\n        if node == goal:\n            return dist[node]\n        for nxt in graph[node]:\n            if nxt not in dist:\n                dist[nxt] = dist[node] + 1\n                queue.append(nxt)\n    return -1\n```\n\nOnce edges have different weights, switch to *Dijkstra*.",
     tags: ["dsa", "graphs"],
     quiz: { prompt: "Which data structure drives BFS?", choices: ["Stack", "Queue", "Heap"], correctIndex: 1 },
   },
@@ -273,14 +280,14 @@ const lessons = [
     author: "lena",
     ago: 32,
     title: "Write the PR description for your reviewer",
-    body: "Say what changed, why, and how you tested it. Link the issue and point at the risky part. Your reviewer then spends their attention on the code instead of reverse-engineering your intent.",
+    body: "Your reviewer should spend their attention on the code, not on reverse-engineering your intent. Cover three things:\n\n- **What** changed, in a sentence or two\n- **Why** it changed, with a link to the issue\n- **How** you tested it\n\nThen point at the risky part. Google's [code review guide](https://google.github.io/eng-practices/review/developer/cl-descriptions.html) has good examples.",
     tags: ["career", "code-review"],
   },
   {
     author: "lena",
     ago: 25,
     title: "STAR keeps interview answers tight",
-    body: "Situation, Task, Action, Result. Keep the setup short, spend most of the time on the Action (what you did, not the team), and finish with a result you can measure.",
+    body: "Four beats, and most of your time goes on the third:\n\n1. **Situation:** one or two sentences of context\n2. **Task:** what you were responsible for\n3. **Action:** what *you* did, not the team\n4. **Result:** something you can measure\n\nIf the setup takes longer than the action, cut it.",
     tags: ["career", "interviews"],
     quiz: { prompt: "In the STAR method, what does the A stand for?", answer: "Action" },
   },
@@ -295,7 +302,7 @@ const lessons = [
     author: "lena",
     ago: 0,
     title: "Timebox being stuck",
-    body: "Give a problem a fixed time, say 30 minutes. When it runs out, write down what you tried and what you expected, then ask. You save hours, and that write-up makes the question easy to answer.",
+    body: "Give a problem a fixed time, say **30 minutes**. When it runs out:\n\n1. Write down what you tried.\n2. Write down what you *expected* to happen.\n3. Ask, and paste that write-up.\n\nYou save hours, and the write-up makes the question easy to answer. Half the time you solve it while writing step 2.",
     tags: ["career", "communication"],
     quiz: {
       prompt: "When you ask for help after a timebox, what should you share?",

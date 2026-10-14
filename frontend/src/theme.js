@@ -191,6 +191,15 @@ const config = defineConfig({
           mastered: reviewState("plum"),
         },
         streak: { value: { _light: "{colors.brand.500}", _dark: "{colors.brand.400}" } },
+        // Syntax highlighting inside code snippets only; they carry no review meaning there.
+        syntax: {
+          keyword: { value: { _light: "{colors.plum.700}", _dark: "{colors.plum.300}" } },
+          string: { value: { _light: "{colors.sage.700}", _dark: "{colors.sage.300}" } },
+          number: { value: { _light: "{colors.honey.700}", _dark: "{colors.honey.300}" } },
+          title: { value: { _light: "{colors.brand.700}", _dark: "{colors.brand.300}" } },
+          attr: { value: { _light: "{colors.clay.700}", _dark: "{colors.clay.300}" } },
+          comment: { value: { _light: "{colors.gray.500}", _dark: "{colors.gray.500}" } },
+        },
       },
       shadows: {
         card: {

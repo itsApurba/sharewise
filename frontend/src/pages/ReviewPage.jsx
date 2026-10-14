@@ -1,4 +1,4 @@
-import { Button, HStack, Progress, SimpleGrid, Stack, Text } from "@chakra-ui/react";
+import { Box, Button, HStack, Progress, SimpleGrid, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuBrain, LuFlame, LuLogIn, LuPartyPopper, LuRefreshCw } from "react-icons/lu";
 import { Link } from "react-router-dom";
@@ -9,6 +9,7 @@ import StatTile from "../components/ds/StatTile";
 import { useMe } from "../hooks/useAuth";
 import { useAnswerReview, useDueReviews } from "../hooks/useReviews";
 import { useMyStats } from "../hooks/useStats";
+import { intervalLabel } from "../lib/format";
 
 /** The end of a session: how it went, the streak, and a way back in if more came due. */
 const SessionDone = ({ tally, remaining, onMore }) => {
@@ -62,6 +63,7 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
   const [items] = useState(dueItems);
   const [index, setIndex] = useState(0);
   const [tally, setTally] = useState({ got: 0, forgot: 0 });
+  const [last, setLast] = useState(null);
   const total = items.length;
   const current = items[index];
   // Progress counts cards answered this session against the total at its start.
@@ -70,6 +72,7 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
   const answer = async (body) => {
     const outcome = await answerReview.mutateAsync({ id: current.id, ...body });
     setTally((t) => ({ ...t, [outcome.result.grade]: t[outcome.result.grade] + 1 }));
+    setLast({ id: current.id, ...outcome });
     return outcome;
   };
 
@@ -92,22 +95,29 @@ const ReviewSession = ({ dueItems, remaining, onMore }) => {
               <Progress.Range />
             </Progress.Track>
           </Progress.Root>
-          <Text fontSize='xs' color='fg.muted' display={{ base: "none", md: "block" }}>
-            Keys: Space shows the lesson · G got it · F forgot · A-D pick a choice · Enter next
-          </Text>
+          {/* Mostly for swipes, which move on without showing the result on the card. */}
+          {last && current && last.id !== current.id && (
+            <Text fontSize='xs' color={last.result.grade === "got" ? "review.gotIt.fg" : "review.forgot.fg"} aria-live='polite'>
+              Last card: {last.result.grade === "got" ? "got it" : "forgot"}, back {intervalLabel(last.review.interval)}
+            </Text>
+          )}
         </Stack>
       )}
       {current ? (
-        <ReviewCard
-          key={current.id}
-          review={current}
-          stepLabel={`Card ${index + 1} of ${total}`}
-          onAnswer={answer}
-          timeZone={me?.timezone}
-          shortcuts
-          onContinue={() => setIndex(index + 1)}
-          continueLabel={index + 1 < total ? "Next card" : "Finish"}
-        />
+        // Clips a card swiped off the side, so the page never scrolls sideways.
+        <Box overflowX='clip' mx='-2' px='2' pb='2'>
+          <ReviewCard
+            key={current.id}
+            review={current}
+            stepLabel={`Card ${index + 1} of ${total}`}
+            onAnswer={answer}
+            timeZone={me?.timezone}
+            shortcuts
+            swipeable
+            onContinue={() => setIndex(index + 1)}
+            continueLabel={index + 1 < total ? "Next card" : "Finish"}
+          />
+        </Box>
       ) : (
         <SessionDone tally={tally} remaining={remaining} onMore={onMore} />
       )}

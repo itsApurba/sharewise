@@ -39,16 +39,16 @@ async function reviewDays(userId, timeZone) {
   return rows.map((r) => r._id);
 }
 
-/** Reviews answered on each of the last seven local days, oldest first, today last. */
-async function reviewsByDay(userId, timeZone, now) {
+/** Reviews answered on each of the last `days` local days, oldest first, today last. */
+async function reviewsByDay(userId, timeZone, now, days = 7) {
   const rows = await ReviewLog.aggregate([
-    { $match: { user: userId, reviewedAt: { $gte: startOfLocalDay(now, timeZone, -6), $lte: now } } },
+    { $match: { user: userId, reviewedAt: { $gte: startOfLocalDay(now, timeZone, 1 - days), $lte: now } } },
     { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$reviewedAt", timezone: timeZone } }, count: { $sum: 1 } } },
   ]);
   const counts = new Map(rows.map((r) => [r._id, r.count]));
   const todayKey = localDayKey(now, timeZone);
-  return Array.from({ length: 7 }, (_, i) => {
-    const date = shiftDayKey(todayKey, i - 6);
+  return Array.from({ length: days }, (_, i) => {
+    const date = shiftDayKey(todayKey, i + 1 - days);
     return { date, count: counts.get(date) || 0 };
   });
 }
@@ -77,4 +77,16 @@ async function userStats(user, now) {
   };
 }
 
-module.exports = { streaks, userStats };
+/** The activity heatmap: reviews per local day over the last `days` days, in the user's time zone. */
+async function userActivity(user, now, days) {
+  const timeZone = user.timezone || "UTC";
+  const byDay = await reviewsByDay(user._id, timeZone, now, days);
+  return {
+    timezone: timeZone,
+    total: byDay.reduce((sum, d) => sum + d.count, 0),
+    activeDays: byDay.filter((d) => d.count > 0).length,
+    days: byDay,
+  };
+}
+
+module.exports = { streaks, userActivity, userStats };

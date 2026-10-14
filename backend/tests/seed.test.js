@@ -48,7 +48,12 @@ describe("demo seed", () => {
       const auth = ["Authorization", `Bearer ${login.body.token}`];
       const { stats } = (await api().get("/api/analytics/me").set(...auth)).body;
       assert.ok(stats.dueToday >= 2, `${handle} has reviews due`);
+      const due = (await api().get("/api/reviews/due").set(...auth)).body.items;
+      assert.ok(due.some((r) => !r.lesson.quiz), `${handle} has a plain card due`);
+      assert.ok(due.some((r) => r.lesson.quiz?.kind === "choice"), `${handle} has a choice quiz due`);
       assert.ok(stats.bestStreak >= 2, `${handle} has history`);
+      const activity = (await api().get(`/api/users/${handle}/activity`)).body;
+      assert.ok(activity.activeDays >= 15, `${handle} has a lively heatmap (${activity.activeDays} days)`);
       streaks[handle] = stats.currentStreak;
 
       const feed = (await api().get("/api/feed").set(...auth)).body;
