@@ -90,8 +90,8 @@ exports.deleteDeck = async (req, res) => {
 exports.addLesson = async (req, res) => {
   const deck = await findDeck(req.params.id);
   assertOwner(deck, req.user);
-  const lessonId = req.body?.lessonId;
-  if (!isObjectId(lessonId)) throw badRequest("Validation failed", { lessonId: "lessonId must be a lesson id" });
+  if (!isObjectId(req.body?.lessonId)) throw badRequest("Validation failed", { lessonId: "lessonId must be a lesson id" });
+  const lessonId = req.body.lessonId.toLowerCase(); // ids are hex, so case must not make a second copy
   if (!(await Lesson.exists({ _id: lessonId }))) throw notFound("Lesson");
   let status = 200;
   if (!deck.lessons.some((id) => String(id) === lessonId)) {

@@ -42,6 +42,9 @@ describe("decks", () => {
     const again = await addLesson(maya, deck.id, theirs.id);
     assert.equal(again.status, 200);
     assert.deepEqual(again.body.deck.lessonIds, [theirs.id, mine.id]);
+    const upper = await addLesson(maya, deck.id, theirs.id.toUpperCase());
+    assert.equal(upper.status, 200);
+    assert.deepEqual(upper.body.deck.lessonIds, [theirs.id, mine.id]);
 
     assert.equal((await addLesson(omar, deck.id, theirs.id)).status, 403);
     assert.equal((await addLesson(maya, deck.id, "0123456789abcdef01234567")).status, 404);
