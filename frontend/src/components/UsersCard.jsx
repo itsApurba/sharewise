@@ -1,131 +1,98 @@
-import {
-  Avatar,
-  Button,
-  ButtonGroup,
-  CloseButton,
-  Dialog,
-  Field,
-  HStack,
-  Heading,
-  Input,
-  Portal,
-  Separator,
-  Text,
-  Textarea,
-  VStack,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Button, CloseButton, Code, Dialog, Field, HStack, Input, Portal, Stack, Text, Textarea, useDisclosure } from "@chakra-ui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { LuPencil, LuTrash2 } from "react-icons/lu";
 import { deleteUserById, updateUserByID } from "../../api/userdata";
 import { toaster } from "./ui/toaster";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import StreakAvatar from "./ds/StreakAvatar";
+import Surface from "./ds/Surface";
+
+const errorTitle = (err) => (typeof err.response?.data === "string" && err.response.data) || "Something went wrong";
 
 const UsersCard = ({ data }) => {
   const queryClient = useQueryClient();
-
-  const [formData, setFormData] = useState({
-    name: data.name,
-    bio: data.bio,
-  });
-
-  const initialRef = useRef(null);
+  const saved = { name: data.name, bio: data.bio ?? "" };
+  const [profile, setProfile] = useState(saved);
+  const [formData, setFormData] = useState(saved);
   const { open, onOpen, onClose } = useDisclosure();
 
   const editMutation = useMutation({
     mutationFn: updateUserByID,
     onSuccess: () => {
+      setProfile(formData);
       onClose();
     },
-    onError: (err) => {
-      toaster.error({ title: err.response.data });
-    },
+    onError: (err) => toaster.error({ title: errorTitle(err) }),
   });
-  console.log(data._id);
 
   const deleteMutation = useMutation({
     mutationFn: deleteUserById,
-    onError: (err) => {
-      toaster.error({ title: err.response.data });
-    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["users"] }),
+    onError: (err) => toaster.error({ title: errorTitle(err) }),
   });
-
-  const handleEdit = () => {
-    editMutation.mutate({ data, formData });
-  };
-
-  const handleDelete = () => {
-    deleteMutation.mutate(data._id, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["users"] });
-      },
-    });
-  };
 
   const handleClose = () => {
     onClose();
-    setFormData({
-      name: data.name,
-      bio: data.bio,
-    });
+    setFormData(profile);
   };
 
   return (
-    <VStack className="usercard outer" w={"max-content"} width={"full"}>
-      <HStack w={"full"} justify={"space-between"}>
-        <HStack>
-          <Avatar.Root size={"md"}>
-            <Avatar.Fallback />
-          </Avatar.Root>
-          <VStack px={2} align={"flex-start"}>
-            <Heading fontSize={"lg"} fontWeight={"normal"}>
-              Name : {formData.name}
-            </Heading>
-            <Heading fontSize={"lg"} fontWeight={"normal"}>
-              ID : {data._id}
-            </Heading>
-            <Heading fontSize={"lg"} fontWeight={"normal"}>
-              Email : {data.email}
-            </Heading>
-            <Separator w='full' />
-          </VStack>
+    <Surface>
+      <Stack gap='3'>
+        <HStack gap='3' align='flex-start' minW='0'>
+          <StreakAvatar name={profile.name} />
+          <Stack gap='0.5' minW='0' flex='1'>
+            <Text fontWeight='600' overflowWrap='anywhere'>
+              {profile.name}
+            </Text>
+            <Text fontSize='sm' color='fg.muted' overflowWrap='anywhere'>
+              {data.email}
+            </Text>
+            <Code size='sm' variant='surface' colorPalette='gray' w='fit-content' maxW='full' overflowWrap='anywhere' whiteSpace='normal'>
+              {data._id}
+            </Code>
+          </Stack>
         </HStack>
-        <ButtonGroup>
-          <Button onClick={onOpen}>Edit</Button>
-          <Button loading={deleteMutation.isPending} onClick={handleDelete} colorPalette='red'>
+        {profile.bio && <Text overflowWrap='anywhere'>{profile.bio}</Text>}
+        <HStack gap='2' justify='flex-end'>
+          <Button size='sm' variant='outline' colorPalette='gray' rounded='full' onClick={onOpen}>
+            <LuPencil />
+            Edit
+          </Button>
+          <Button size='sm' variant='subtle' colorPalette='clay' rounded='full' loading={deleteMutation.isPending} onClick={() => deleteMutation.mutate(data._id)}>
+            <LuTrash2 />
             Delete
           </Button>
-        </ButtonGroup>
-      </HStack>
-      <Text alignSelf={"flex-start"} px={6}>
-        BIO: {formData.bio}
-      </Text>
-      <Dialog.Root open={open} onOpenChange={(e) => !e.open && onClose()}>
+        </HStack>
+      </Stack>
+      <Dialog.Root open={open} onOpenChange={(e) => !e.open && handleClose()} placement='center'>
         <Portal>
           <Dialog.Backdrop />
-          <Dialog.Positioner>
-            <Dialog.Content>
+          <Dialog.Positioner px='4'>
+            <Dialog.Content rounded='card'>
               <Dialog.Header>
-                <Dialog.Title>Edit User</Dialog.Title>
+                <Dialog.Title fontFamily='heading'>Edit user</Dialog.Title>
               </Dialog.Header>
               <Dialog.CloseTrigger asChild>
                 <CloseButton size='sm' />
               </Dialog.CloseTrigger>
               <Dialog.Body>
-                <Field.Root mb={3}>
-                  <Field.Label>Name</Field.Label>
-                  <Input ref={initialRef} placeholder='' value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} />
-                </Field.Root>
-                <Field.Root>
-                  <Field.Label>BIO</Field.Label>
-                  <Textarea ref={initialRef} placeholder='' value={formData.bio} onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))} />
-                </Field.Root>
+                <Stack gap='4'>
+                  <Field.Root>
+                    <Field.Label>Name</Field.Label>
+                    <Input value={formData.name} onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))} />
+                  </Field.Root>
+                  <Field.Root>
+                    <Field.Label>Bio</Field.Label>
+                    <Textarea value={formData.bio} onChange={(e) => setFormData((prev) => ({ ...prev, bio: e.target.value }))} />
+                  </Field.Root>
+                </Stack>
               </Dialog.Body>
-
               <Dialog.Footer>
-                <Button colorPalette='blue' mr={3} onClick={handleClose}>
-                  Close
+                <Button variant='ghost' colorPalette='gray' onClick={handleClose}>
+                  Cancel
                 </Button>
-                <Button loading={editMutation.isPending} variant='ghost' onClick={handleEdit}>
+                <Button loading={editMutation.isPending} onClick={() => editMutation.mutate({ data, formData })}>
                   Save
                 </Button>
               </Dialog.Footer>
@@ -133,8 +100,7 @@ const UsersCard = ({ data }) => {
           </Dialog.Positioner>
         </Portal>
       </Dialog.Root>
-      <Separator w='full' />
-    </VStack>
+    </Surface>
   );
 };
 
