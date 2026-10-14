@@ -64,6 +64,17 @@ describe("lesson CRUD", () => {
     assert.deepEqual(Object.keys(res.body.error.fields).sort(), ["body", "code.source", "link", "quiz.choices", "quiz.correctIndex", "quiz.prompt", "tags", "title"]);
   });
 
+  it("keeps a markdown body as written, up to 2000 characters", async () => {
+    const maya = await signup("maya");
+    const body = "**Bold** and `code`:\n\n- one\n\n```js\nconst x = 1;\n```\n<b>raw</b>";
+    const ok = await api().post("/api/lessons").set(...maya.auth).send({ title: "Markdown", body: body + "x".repeat(2000 - body.length) });
+    assert.equal(ok.status, 201);
+    assert.ok(ok.body.lesson.body.startsWith(body));
+    const long = await api().post("/api/lessons").set(...maya.auth).send({ title: "Too long", body: "x".repeat(2001) });
+    assert.equal(long.status, 400);
+    assert.ok(long.body.error.fields.body);
+  });
+
   it("rejects a quiz with both an answer and choices, or neither", async () => {
     const maya = await signup("maya");
     for (const quiz of [{ prompt: "Which?", answer: "a", choices: ["a", "b"], correctIndex: 0 }, { prompt: "Which?" }, "text"]) {

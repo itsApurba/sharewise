@@ -26,6 +26,13 @@ const HISTORY_DAYS = 84;
 const MAX_REMEMBERS = 12;
 /** Reviews each demo user has waiting today, at least. */
 const DUE_TODAY = 2;
+/**
+ * Card kinds every demo user has due today, so the Review screen shows both ways of
+ * answering on day one: swipe or keys on a plain lesson, lettered keys on a choice quiz.
+ */
+const DUE_KINDS = ["plain", "choice"];
+
+const kindOf = (lesson) => lesson.quiz?.kind || "plain";
 
 /** A stable pseudo-random integer, so every seed run makes the same choices. */
 const hash = (...parts) => crypto.createHash("sha1").update(parts.join("|")).digest().readUInt32BE(0);
@@ -70,9 +77,10 @@ function simulate(user, active, lessons, now) {
   const logs = [];
   const attempts = new Map();
 
-  const remember = (when) => {
-    const index = candidates.findIndex((l) => l.createdAt < when);
-    if (index === -1 || cards.length === MAX_REMEMBERS) return;
+  // A `kind` top-up for today may go past MAX_REMEMBERS.
+  const remember = (when, kind) => {
+    const index = candidates.findIndex((l) => l.createdAt < when && (!kind || kindOf(l) === kind));
+    if (index === -1 || (!kind && cards.length === MAX_REMEMBERS)) return;
     const [lesson] = candidates.splice(index, 1);
     cards.push({ _id: new mongoose.Types.ObjectId(), user: user._id, lesson, ...newCard(when, tz), createdAt: when });
   };
@@ -96,6 +104,10 @@ function simulate(user, active, lessons, now) {
     const next = day + 1;
     const wanted = next === 0 ? DUE_TODAY : active.has(next) ? 1 : 0;
     for (let n = dueCount(at(next, 12)); n < wanted && cards.length < MAX_REMEMBERS; n += 1) remember(at(day, 18));
+  }
+  const dueToday = cards.filter((c) => isDue(c, at(0, 12)));
+  for (const kind of DUE_KINDS) {
+    if (!dueToday.some((c) => kindOf(c.lesson) === kind)) remember(at(-1, 18), kind);
   }
   return {
     cards: cards.map(({ lesson, createdAt, ...card }) => ({ ...card, lesson: lesson._id, createdAt, updatedAt: card.lastReviewedAt || createdAt, __v: 0 })),

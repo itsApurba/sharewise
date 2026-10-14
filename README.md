@@ -70,6 +70,44 @@ The project frontend will be started on port 5173. You can access it by opening 
 And for the backend you have specify the PORT number in .env file
 
 
+## Deploy to Vercel
+
+Sharewise deploys as two Vercel projects from this repository. Create each with **Add New → Project**, import the repo, and set its **Root Directory**.
+
+### Backend project (Root Directory `backend`)
+
+`backend/api/index.js` is the serverless function and `backend/vercel.json` rewrites `/api/*` to it, so routes stay at `https://<backend>.vercel.app/api/...`. Each instance connects to MongoDB once and reuses the connection on warm requests. A missing required variable or an unreachable database answers `503` and the function log says which.
+
+Set these under **Settings → Environment Variables**, then redeploy:
+
+| Variable | Required | Value |
+| --- | --- | --- |
+| `MONGO_URI` or `MONGODB_URI` | yes | Atlas connection string including the database name, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/sharewise`. The Vercel MongoDB Atlas integration sets `MONGODB_URI` for you. If both are set, `MONGO_URI` wins. |
+| `JWT_SECRET` | yes | A long random value, e.g. `openssl rand -base64 48`. Changing it logs everyone out. |
+| `JWT_EXPIRATION_MINUTES` | no | Session lifetime in minutes (default one week). |
+| `CORS_ORIGIN` | no | Comma-separated allowed origins, e.g. `https://sharewise.vercel.app`. Unset allows every origin. |
+| `NODE_ENV` | no | Vercel already runs functions with `production`. |
+
+**MongoDB Atlas:** Vercel functions have no fixed outbound IP. Under **Network Access**, allow `0.0.0.0/0` (access from anywhere) so the function can connect. The integration may do this for you.
+
+**Demo data (one time):** seed Atlas from your machine. A variable set in the shell wins over `backend/.env`:
+
+```bash
+cd backend
+npm i
+MONGODB_URI='mongodb+srv://user:pass@cluster.mongodb.net/sharewise' npm run seed
+```
+
+### Frontend project (Root Directory `frontend`)
+
+Vercel detects Vite and builds `dist`. `frontend/vercel.json` rewrites every non-file path to `index.html`, so deep links load the app instead of a 404.
+
+| Variable | Required | Value |
+| --- | --- | --- |
+| `VITE_BACKEND_URL` | yes | The backend origin **without `/api`**, e.g. `https://<backend>.vercel.app`. The app appends `/api` itself. |
+
+`VITE_BACKEND_URL` is compiled into the bundle, so redeploy the frontend after changing it, then set the backend's `CORS_ORIGIN` to the frontend's URL.
+
 ## Usage
 
 To check this project, you don't need to create an account. You can start creating and updating user profiles and posts. You can also "like" and "unlike" posts. The analytics pages will display insights on user engagement and content popularity.

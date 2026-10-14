@@ -1,11 +1,11 @@
-// Loads the demo community into the database at MONGO_URI: `npm run seed`.
+// Loads the demo community into the database at MONGO_URI (or MONGODB_URI): `npm run seed`.
 const mongoose = require("mongoose");
 const { mongo } = require("../src/config/vars");
 const { seed } = require("../src/seed");
 
 async function main() {
   if (!mongo.uri) {
-    console.error("Set MONGO_URI (in backend/.env or the environment) to the database to seed.");
+    console.error("Set MONGO_URI or MONGODB_URI (in backend/.env or the environment) to the database to seed.");
     process.exit(1);
   }
   await mongoose.connect(mongo.uri);

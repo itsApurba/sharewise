@@ -4,7 +4,7 @@
 const { assertValid } = require("../../lib/errors");
 const { str } = require("../../lib/validate");
 
-const LIMITS = { title: [3, 120], body: [1, 1000], source: 2000, language: 20, link: 500, tags: 5, tag: 24, prompt: [3, 200], answer: 100 };
+const LIMITS = { title: [3, 120], body: [1, 2000], source: 2000, language: 20, link: 500, tags: 5, tag: 24, prompt: [3, 200], answer: 100 };
 const TAG = /^[a-z0-9][a-z0-9+#.-]*$/;
 const LANGUAGE = /^[a-z0-9+#.-]+$/;
 
