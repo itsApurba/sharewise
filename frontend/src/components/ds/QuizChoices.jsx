@@ -1,36 +1,32 @@
 import { Button, Icon, Stack, Text } from "@chakra-ui/react";
-import { useState } from "react";
 import { LuCheck, LuX } from "react-icons/lu";
 
 const letters = "ABCDEFGH";
 
 /**
- * Multiple-choice answers for a one-line quiz. The first pick locks the group,
- * marks the right answer in sage and a wrong pick in clay, then calls onAnswer(correct).
+ * Multiple-choice answers for a one-line quiz, graded by the caller (usually the server).
+ * `picked` is the reader's choice (null until they pick) and `correctIndex` the right one
+ * (null until known). Once picked the group locks; once graded it marks the right answer
+ * in sage and a wrong pick in clay. onPick(index) fires on the first pick.
  */
-const QuizChoices = ({ choices, answerIndex, onAnswer, disabled = false }) => {
-  const [picked, setPicked] = useState(null);
-  const locked = disabled || picked !== null;
-
-  const pick = (index) => {
-    if (locked) return;
-    setPicked(index);
-    onAnswer?.(index === answerIndex);
-  };
+const QuizChoices = ({ choices, picked = null, correctIndex = null, onPick, disabled = false }) => {
+  const locked = disabled || picked !== null || correctIndex !== null;
 
   return (
     <Stack gap='2' role='group' aria-label='Answer choices'>
       {choices.map((choice, index) => {
-        const isAnswer = locked && index === answerIndex;
-        const isWrongPick = picked === index && index !== answerIndex;
-        const palette = isAnswer ? "sage" : isWrongPick ? "clay" : "gray";
+        const isAnswer = correctIndex !== null && index === correctIndex;
+        const isWrongPick = correctIndex !== null && picked === index && index !== correctIndex;
+        const isPending = correctIndex === null && picked === index;
+        const palette = isAnswer ? "sage" : isWrongPick ? "clay" : isPending ? "plum" : "gray";
+        const marked = isAnswer || isWrongPick || isPending;
         return (
           <Button
             key={choice}
-            onClick={() => pick(index)}
+            onClick={() => !locked && onPick?.(index)}
             aria-disabled={locked}
             aria-pressed={picked === index}
-            variant={isAnswer || isWrongPick ? "subtle" : "outline"}
+            variant={marked ? "subtle" : "outline"}
             colorPalette={palette}
             justifyContent='flex-start'
             h='auto'
@@ -43,8 +39,8 @@ const QuizChoices = ({ choices, answerIndex, onAnswer, disabled = false }) => {
             textAlign='start'
             fontWeight='normal'
             borderWidth='1px'
-            borderColor={isAnswer ? "review.gotIt.border" : isWrongPick ? "review.forgot.border" : "border"}
-            opacity={locked && !isAnswer && !isWrongPick ? 0.6 : 1}
+            borderColor={isAnswer ? "review.gotIt.border" : isWrongPick ? "review.forgot.border" : isPending ? "plum.border" : "border"}
+            opacity={locked && !marked ? 0.6 : 1}
             cursor={locked ? "default" : "pointer"}
           >
             <Text
@@ -55,8 +51,8 @@ const QuizChoices = ({ choices, answerIndex, onAnswer, disabled = false }) => {
               boxSize='6'
               flexShrink={0}
               rounded='full'
-              bg={isAnswer || isWrongPick ? "colorPalette.solid" : "bg.muted"}
-              color={isAnswer || isWrongPick ? "colorPalette.contrast" : "fg.muted"}
+              bg={marked ? "colorPalette.solid" : "bg.muted"}
+              color={marked ? "colorPalette.contrast" : "fg.muted"}
               fontSize='xs'
               fontWeight='700'
             >
@@ -72,7 +68,7 @@ const QuizChoices = ({ choices, answerIndex, onAnswer, disabled = false }) => {
                 letters[index]
               )}
             </Text>
-            <Text as='span' flex='1' minW='0'>
+            <Text as='span' flex='1' minW='0' overflowWrap='anywhere'>
               {choice}
             </Text>
           </Button>

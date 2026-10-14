@@ -3,8 +3,6 @@
  * Each feature slice replaces its use of this file with real queries, then the file goes.
  */
 
-export const SAMPLE_VIEWER = { name: "Sample Learner", handle: "sample-learner", streak: 6, bio: "Placeholder profile. Real profiles arrive with sign-up." };
-
 const authors = {
   ada: { name: "Ada Example", handle: "ada-example", streak: 12 },
   lin: { name: "Lin Placeholder", handle: "lin-placeholder", streak: 3 },
@@ -57,17 +55,10 @@ export const SAMPLE_LESSONS = [
 ];
 
 /** Reviews due today, covering each quiz shape and several review states, so every card variant is visible. */
-export const SAMPLE_REVIEWS = [
-  { lesson: SAMPLE_LESSONS[0], state: "due", stepLabel: "2nd review · after 3 days" },
-  { lesson: SAMPLE_LESSONS[1], state: "forgot", stepLabel: "Forgot last time · back after 1 day" },
-  { lesson: SAMPLE_LESSONS[2], state: "due", stepLabel: "1st review · after 1 day" },
-  { lesson: SAMPLE_LESSONS[3], state: "mastered", stepLabel: "5th review · after 1 month" },
-];
-
 export const SAMPLE_STATS = {
   streak: 6,
   mastered: 14,
-  dueToday: SAMPLE_REVIEWS.length,
+  dueToday: 2,
   retention: "86%",
   topLessons: SAMPLE_LESSONS.map(({ id, title, author, rememberCount }) => ({ id, title, author, rememberCount })),
   topAuthors: [
@@ -76,3 +67,10 @@ export const SAMPLE_STATS = {
     { ...authors.sam, taught: 23 },
   ],
 };
+
+export const SAMPLE_REVIEWS = [
+  { lesson: SAMPLE_LESSONS[0], state: "due", stepLabel: "2nd review · after 3 days" },
+  { lesson: SAMPLE_LESSONS[1], state: "forgot", stepLabel: "Forgot last time · back after 1 day" },
+  { lesson: SAMPLE_LESSONS[2], state: "due", stepLabel: "1st review · after 1 day" },
+  { lesson: SAMPLE_LESSONS[3], state: "mastered", stepLabel: "5th review · after 1 month" },
+];
