@@ -1,4 +1,4 @@
-import { LuBrain, LuChartColumn, LuChartNoAxesColumn, LuCompass, LuHouse, LuTrophy, LuUser } from "react-icons/lu";
+import { LuBrain, LuChartColumn, LuCompass, LuHouse, LuUser } from "react-icons/lu";
 
 /**
  * Primary destinations: the mobile bottom nav and the top of the desktop sidebar.
@@ -14,7 +14,4 @@ export const PRIMARY_NAV = [
 ];
 
 /** The original Sharewise screens, kept reachable while the feature slices replace them. */
-export const CLASSIC_NAV = [
-  { to: "/user-analytics", label: "User analytics", icon: LuTrophy },
-  { to: "/post-analytics", label: "Post analytics", icon: LuChartNoAxesColumn },
-];
+export const CLASSIC_NAV = [];

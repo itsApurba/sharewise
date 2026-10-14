@@ -166,14 +166,16 @@ const Sidebar = ({ badges, navItems, me }) => (
       ))}
     </Stack>
 
-    <Stack gap='1'>
-      <Text textStyle='label' color='fg.muted' px='3' mb='1' display={{ md: "none", lg: "block" }}>
-        Classic
-      </Text>
-      {CLASSIC_NAV.map((item) => (
-        <SidebarLink key={item.to} item={item} />
-      ))}
-    </Stack>
+    {CLASSIC_NAV.length > 0 && (
+      <Stack gap='1'>
+        <Text textStyle='label' color='fg.muted' px='3' mb='1' display={{ md: "none", lg: "block" }}>
+          Classic
+        </Text>
+        {CLASSIC_NAV.map((item) => (
+          <SidebarLink key={item.to} item={item} />
+        ))}
+      </Stack>
+    )}
 
     <Stack mt='auto' gap='1' align={{ md: "center", lg: "stretch" }}>
       <HStack justify={{ md: "center", lg: "space-between" }} flexDirection={{ md: "column", lg: "row" }} gap='2'>

@@ -1,9 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import PostForm from "./components/PostForm";
-import UserAnalytics from "./components/UserAnalytics";
-import PostAnalytics from "./components/PostAnalytics";
 import AppShell from "./components/ds/AppShell";
-import { PageContainer } from "./components/ds/Page";
 import ReviewPage from "./pages/ReviewPage";
 import StatsPage from "./pages/StatsPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -51,10 +47,6 @@ const AllRoutes = () => {
           <Route path='/lesson/:id/edit' element={<EditLessonPage />} />
           <Route path='/new' element={<NewLessonPage />} />
 
-          {/* Classic screens, kept until the feature slices replace them. */}
-          <Route path='/post' element={<PageContainer><PostForm /></PageContainer>} />
-          <Route path='/user-analytics' element={<UserAnalytics />} />
-          <Route path='/post-analytics' element={<PostAnalytics />} />
 
           <Route path='*' element={<NotFoundPage />} />
         </Route>
