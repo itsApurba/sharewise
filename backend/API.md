@@ -283,6 +283,7 @@ MyStats:
 {
   "currentStreak": 5, "bestStreak": 9, "reviewedToday": false,
   "mastered": 4, "remembered": 12, "dueToday": 3, "reviewsThisWeek": 17,
+  "reviewsByDay": [{ "date": "2026-10-08", "count": 2 }, "… 7 entries …", { "date": "2026-10-14", "count": 3 }],
   "timezone": "Asia/Kolkata"
 }
 ```
@@ -290,6 +291,8 @@ MyStats:
 - `mastered`: cards with `interval >= 21` days. `remembered`: all of the user's cards.
 - `dueToday`: cards with `dueAt <= now`. Since cards come due at local midnight, that is everything due today or overdue.
 - `reviewsThisWeek`: answers given from local midnight six days ago until now (today plus the six days before it).
+- `reviewsByDay`: the same window split by local day: always 7 entries, oldest first, today last, each
+  `{ "date": "YYYY-MM-DD", "count": n }` (days with no answers have `count: 0`). Days follow the streak rule below.
 - `currentStreak`, `bestStreak`, `reviewedToday`: see [Streaks and time zones](#streaks-and-time-zones).
 
 ## Spaced repetition (SM-2 rules)

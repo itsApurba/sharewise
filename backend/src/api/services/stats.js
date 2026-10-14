@@ -39,14 +39,29 @@ async function reviewDays(userId, timeZone) {
   return rows.map((r) => r._id);
 }
 
+/** Reviews answered on each of the last seven local days, oldest first, today last. */
+async function reviewsByDay(userId, timeZone, now) {
+  const rows = await ReviewLog.aggregate([
+    { $match: { user: userId, reviewedAt: { $gte: startOfLocalDay(now, timeZone, -6), $lte: now } } },
+    { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$reviewedAt", timezone: timeZone } }, count: { $sum: 1 } } },
+  ]);
+  const counts = new Map(rows.map((r) => [r._id, r.count]));
+  const todayKey = localDayKey(now, timeZone);
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = shiftDayKey(todayKey, i - 6);
+    return { date, count: counts.get(date) || 0 };
+  });
+}
+
 async function userStats(user, now) {
   const timeZone = user.timezone || "UTC";
-  const [days, mastered, dueToday, remembered, reviewsThisWeek] = await Promise.all([
+  const [days, mastered, dueToday, remembered, reviewsThisWeek, byDay] = await Promise.all([
     reviewDays(user._id, timeZone),
     Review.countDocuments({ user: user._id, interval: { $gte: MASTERED_DAYS } }),
     Review.countDocuments({ user: user._id, dueAt: { $lte: now } }),
     Review.countDocuments({ user: user._id }),
     ReviewLog.countDocuments({ user: user._id, reviewedAt: { $gte: startOfLocalDay(now, timeZone, -6), $lte: now } }),
+    reviewsByDay(user._id, timeZone, now),
   ]);
   const streak = streaks(days, localDayKey(now, timeZone));
   return {
@@ -57,6 +72,7 @@ async function userStats(user, now) {
     remembered,
     dueToday,
     reviewsThisWeek,
+    reviewsByDay: byDay,
     timezone: timeZone,
   };
 }

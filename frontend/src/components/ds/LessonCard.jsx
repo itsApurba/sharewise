@@ -1,6 +1,7 @@
 import { Box, Button, HStack, Heading, Icon, Link as ChakraLink, Skeleton, SkeletonCircle, SkeletonText, Stack, Tag, Text, Wrap } from "@chakra-ui/react";
 import { LuBookmarkCheck, LuBookmarkPlus, LuCircleHelp, LuExternalLink } from "react-icons/lu";
 import { Link } from "react-router-dom";
+import { timeAgo } from "../../lib/format";
 import StreakAvatar from "./StreakAvatar";
 import Surface from "./Surface";
 
@@ -30,31 +31,48 @@ export const AuthorLine = ({ author, meta }) => {
   );
 };
 
-/** A code snippet that scrolls inside its own box, never the page. */
-export const CodeSnippet = ({ code }) => (
-  <Box
-    as='pre'
-    fontFamily='mono'
-    fontSize='sm'
-    lineHeight='1.6'
-    bg='bg.muted'
-    rounded='control'
-    px='3'
-    py='2.5'
-    overflowX='auto'
-    maxW='full'
-    tabIndex={0}
-  >
-    <code>{code}</code>
-  </Box>
-);
+/**
+ * A code snippet that scrolls inside its own box, never the page.
+ * `code` is a string or the API's `{ language, source }`.
+ */
+export const CodeSnippet = ({ code }) => {
+  const source = typeof code === "string" ? code : code.source;
+  const language = typeof code === "string" ? null : code.language;
+  return (
+    <Box position='relative' minW='0'>
+      {language && language !== "text" && (
+        <Text position='absolute' top='1.5' right='2.5' fontFamily='mono' fontSize='2xs' color='fg.muted' textTransform='uppercase' pointerEvents='none'>
+          {language}
+        </Text>
+      )}
+      <Box
+        as='pre'
+        fontFamily='mono'
+        fontSize='sm'
+        lineHeight='1.6'
+        bg='bg.muted'
+        rounded='control'
+        px='3'
+        pt={language && language !== "text" ? "5" : "2.5"}
+        pb='2.5'
+        overflowX='auto'
+        maxW='full'
+        tabIndex={0}
+        aria-label={language ? `${language} code` : "Code"}
+      >
+        <code>{source}</code>
+      </Box>
+    </Box>
+  );
+};
 
 /**
  * A bite-size lesson: author, optional title, short text, optional code and link, tags.
  * The footer defaults to the "Remember this" action; pass `footer` to replace it.
  */
-const LessonCard = ({ lesson, to, remembered = false, onRemember, footer, headerAction }) => {
-  const { title, body, code, link, tags = [], quiz, author, createdLabel, rememberCount } = lesson;
+const LessonCard = ({ lesson, to, remembered = false, rememberBusy = false, onRemember, footer, headerAction }) => {
+  const { title, body, code, link, tags = [], quiz, author, createdAt, rememberCount } = lesson;
+  const createdLabel = lesson.createdLabel ?? timeAgo(createdAt);
   const titleNode = title && (
     <Heading as='h3' textStyle='title'>
       {title}
@@ -93,8 +111,10 @@ const LessonCard = ({ lesson, to, remembered = false, onRemember, footer, header
               </Tag.Root>
             )}
             {tags.map((tag) => (
-              <Tag.Root key={tag} size='sm' colorPalette='gray' variant='subtle' rounded='full'>
-                <Tag.Label>#{tag}</Tag.Label>
+              <Tag.Root key={tag} size='sm' colorPalette='gray' variant='subtle' rounded='full' asChild>
+                <Link to={`/explore?tag=${encodeURIComponent(tag)}`}>
+                  <Tag.Label>#{tag}</Tag.Label>
+                </Link>
               </Tag.Root>
             ))}
           </Wrap>
@@ -109,6 +129,7 @@ const LessonCard = ({ lesson, to, remembered = false, onRemember, footer, header
               colorPalette='brand'
               rounded='full'
               onClick={onRemember}
+              loading={rememberBusy}
               aria-pressed={remembered}
             >
               {remembered ? <LuBookmarkCheck /> : <LuBookmarkPlus />}
