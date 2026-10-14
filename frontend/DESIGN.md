@@ -77,6 +77,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
 | `StatTile` | A label and a big number, tinted by `palette`. |
+| `WeekChart` | Seven columns of reviews per day, today last, with values on the caps and a hidden table for screen readers. `days` is `[{ date, count }]`. |
 | `EmptyState` | A dashed panel with an icon, title, guidance and an optional action. |
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |
@@ -92,7 +93,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/` | Feed | Real: lessons mixed with due reviews, infinite scroll; a welcome plus newest lessons when logged out |
 | `/explore` | Explore | Real, public; `?tag=` filters |
 | `/review` | Review queue | Real: one due card at a time, progress, done state |
-| `/stats` | Stats | Placeholder, sample data |
+| `/stats` | Stats | Real data: your streak and progress, top lessons and teachers, community totals |
 | `/u/:handle` | Profile (`?tab=followers` or `following` picks the list) | Real data |
 | `/profile` | Redirects to the signed-in user's profile | Done |
 | `/settings/profile` | Edit my profile, log out, delete account | Real data |

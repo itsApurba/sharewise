@@ -67,3 +67,10 @@ export const SAMPLE_STATS = {
     { ...authors.sam, taught: 23 },
   ],
 };
+
+export const SAMPLE_REVIEWS = [
+  { lesson: SAMPLE_LESSONS[0], state: "due", stepLabel: "2nd review · after 3 days" },
+  { lesson: SAMPLE_LESSONS[1], state: "forgot", stepLabel: "Forgot last time · back after 1 day" },
+  { lesson: SAMPLE_LESSONS[2], state: "due", stepLabel: "1st review · after 1 day" },
+  { lesson: SAMPLE_LESSONS[3], state: "mastered", stepLabel: "5th review · after 1 month" },
+];
