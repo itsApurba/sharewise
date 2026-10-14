@@ -353,7 +353,8 @@ for past answers. A card's `dueAt` is computed with the zone the user had when t
 
 `npm run seed` (needs `MONGO_URI`) loads a demo community: 5 users, 26 lessons on JS, CSS, Git, DSA and career
 (quizzes on half of them), follows, and three weeks of simulated review history, so streaks, mastered lessons and
-due reviews exist on the first day. Every demo user's password is **`sharewise123`**:
+due reviews exist on the first day. Every demo user has at least one lesson without a quiz and one multiple-choice
+quiz due today, so both ways of answering on the Review screen (swipe or keys, lettered choices) show up. Every demo user's password is **`sharewise123`**:
 
 | Name | Email | Handle |
 |---|---|---|

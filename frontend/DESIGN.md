@@ -9,7 +9,7 @@ The system is built on Chakra UI 3. Tokens live in `src/theme.js`, reusable comp
 - **Mobile first.** Design at 390px wide first. Nothing may scroll sideways at any width. Code blocks scroll inside their own box.
 - **One idea per card.** Lessons, reviews and panels all sit on the same `Surface`.
 - **Color carries meaning.** Ember means "remember". The four review colors mean only their review state.
-- **Calm motion.** Short background and color transitions only. No bouncing or lift-on-hover.
+- **Calm motion.** Short background and color transitions only. No bouncing or lift-on-hover. The one exception is a review card under a finger: it follows the swipe with a slight tilt and flies off once graded. With `prefers-reduced-motion` it follows without tilting and fades instead of flying.
 
 ## Tokens
 
@@ -72,7 +72,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `PreviewNotice` | A honey note marking a screen that shows sample data. Remove it when the screen gets real data. |
 | `Surface` | The card surface. Use it for any panel. |
 | `LessonCard` / `LessonCardSkeleton` | Author line, title, body, code, link, tags (linking to Explore), a quiz tag, and a "Remember this" footer. Takes an API Lesson. `footer` replaces the footer and `headerAction` adds a menu at the top right. `AuthorLine` and `CodeSnippet` (a string or `{ language, source }`) are exported from the same file for reuse. `components/lessons/LessonItem` wires it to the API (remember toggle, author edit/delete menu). |
-| `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back (an API Review). A choice quiz is answered by picking, a free-answer quiz by typing (or "Show answer", which counts as forgot), and a lesson without a quiz by "Show the lesson" then "Got it" or "Forgot". Each answer goes to `onAnswer(body)`, which resolves to the API's `{ review, result }`; the card then colors itself by the result, reveals the lesson and answer, and says when it comes back. `onContinue` adds a button after the result. |
+| `ReviewCard` / `ReviewCardSkeleton` | A saved lesson coming back (an API Review). A choice quiz is answered by picking, a free-answer quiz by typing (or "Show answer", which counts as forgot), and a lesson without a quiz by "Show the lesson" then "Got it" or "Forgot". Each answer goes to `onAnswer(body)`, which resolves to the API's `{ review, result }`; the card then colors itself by the result, reveals the lesson and answer, and says when it comes back. `onContinue` adds a button after the result. `shortcuts` adds window keys and a hint row of key caps (hidden on touch screens): Space shows the lesson, 1 / ← / F forgot, 2 / → / G got it, A-D pick a choice, Enter or Space continues. `swipeable` lets touch readers grade a revealed lesson by swiping right (got it) or left (forgot), with a sage or clay edge and label fading in on the trailing side; the card then flies off and `onContinue` runs at once. The buttons stay as the accessible fallback. The gesture and key hooks are in `hooks/useReviewGestures.js`. |
 | `QuizChoices` | Lettered answer buttons, graded by the caller. `onPick(index)` fires on the first pick and locks the group; once `correctIndex` is known it shows the right answer in sage and a wrong `picked` in clay. |
 | `ReviewStateBadge` | A pill for `due`, `gotIt`, `forgot` or `mastered`. The state metadata is in `reviewStates.js`. |
 | `StreakAvatar` | An avatar with a flame-and-number badge. A streak of 0 shows the plain avatar. |
@@ -92,7 +92,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 |---|---|---|
 | `/` | Feed | Real: lessons mixed with due reviews, infinite scroll; a welcome plus newest lessons when logged out |
 | `/explore` | Explore | Real, public; `?tag=` filters |
-| `/review` | Review queue | Real: one due card at a time, progress, done state |
+| `/review` | Review queue | Real: one due card at a time, swipe or keys to grade, progress, the last card's result, done state |
 | `/stats` | Stats | Real data: your streak and progress, top lessons and teachers, community totals |
 | `/u/:handle` | Profile (`?tab=followers` or `following` picks the list) | Real data |
 | `/profile` | Redirects to the signed-in user's profile | Done |
