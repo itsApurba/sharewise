@@ -7,7 +7,7 @@ at most 100 kB), and every response body is JSON except `204 No Content`.
 and exposes the `X-Due-Count` header.
 
 Contents: [Conventions](#conventions) · [Auth](#auth) · [Users, profiles and follows](#users-profiles-and-follows) ·
-[Lessons](#lessons) · [Remember and reviews](#remember-and-reviews) · [Feed](#feed) ·
+[Lessons](#lessons) · [Remember and reviews](#remember-and-reviews) · [Decks](#decks) · [Feed](#feed) ·
 [Analytics](#analytics) · [Spaced repetition](#spaced-repetition-sm-2-rules) ·
 [Feed mixing rule](#feed-mixing-rule) · [Streaks and time zones](#streaks-and-time-zones) · [Demo seed](#demo-seed)
 
@@ -35,7 +35,7 @@ Every write acts as the authenticated user. No route takes a user id in the body
 
 ### Ids
 
-Lessons and review cards are addressed by `id` (a 24-character hex string).
+Lessons, review cards and decks are addressed by `id` (a 24-character hex string).
 Users are addressed by `handle` in URLs; user `id`s appear in responses but no route needs one.
 A malformed id in a URL is a `404`, the same as an id that does not exist.
 
@@ -54,8 +54,8 @@ Every error has this shape, and the status code always matches it (there are no 
 | 400 | `VALIDATION` | A missing, malformed or out-of-range field, query parameter or grade. |
 | 400 | `BAD_JSON` | The body is not valid JSON. |
 | 401 | `UNAUTHORIZED` | No token on an auth route, an invalid or expired token, or a wrong email or password. |
-| 403 | `FORBIDDEN` | Editing or deleting someone else's lesson, or remembering your own. |
-| 404 | `NOT_FOUND` | No such lesson, review, user, quiz or route (including malformed ids). |
+| 403 | `FORBIDDEN` | Editing or deleting someone else's lesson or deck, or remembering your own lesson. |
+| 404 | `NOT_FOUND` | No such lesson, review, deck, user, quiz or route (including malformed ids). |
 | 409 | `DUPLICATE` | Sign-up or profile edit with an email or handle that is taken (`fields` names it). |
 | 409 | `NOT_DUE` | Answering a review card that is not due yet or was just answered. |
 | 413 | `TOO_LARGE` | The body is over 100 kB. |
@@ -155,10 +155,11 @@ A missing field is `400`; an unknown email or wrong password is `401` "Invalid e
 |---|---|---|
 | `GET /users?q=` | public | Page of PublicUser, sorted by handle. `q` matches name or handle, case-insensitive. |
 | `PATCH /users/me` | auth | Body: any of `name`, `handle`, `bio`, `timezone` (same rules as sign-up). `200 { "user": Me }`. Sending `email` or `password` is a `400`; an empty body is a `400`; a taken handle is `409`. |
-| `DELETE /users/me` | auth | `204`. Deletes the account, the user's lessons (and everyone's review cards and quiz answers on them), the user's own cards, review history, quiz answers and follows in both directions. Other users keep their own review history. |
+| `DELETE /users/me` | auth | `204`. Deletes the account, the user's lessons (and everyone's review cards and quiz answers on them, and their places in decks), the user's decks, the user's own cards, review history, quiz answers and follows in both directions. Other users keep their own review history. |
 | `GET /users/:handle` | optional | Profile, below. `404` for an unknown handle. |
 | `GET /users/:handle/activity?days=` | public | Activity heatmap, below. `days` is 7-371, default 84 (twelve weeks). |
 | `GET /users/:handle/lessons` | optional | Page of Lesson, newest first. |
+| `GET /users/:handle/decks` | optional | Page of Deck, newest first. See [Decks](#decks). |
 | `GET /users/:handle/followers` | public | Page of PublicUser, most recent follow first. |
 | `GET /users/:handle/following` | public | Page of PublicUser, most recent follow first. |
 | `POST /users/:handle/follow` | auth | `201` when new, `200` when already following: `{ "user": UserSummary, "isFollowing": true, "followers": 4 }`. Following yourself is a `400`. |
@@ -212,7 +213,7 @@ with at least one answer.
 | `POST /lessons` | auth | Lesson input → `201 { "lesson": Lesson }`. |
 | `GET /lessons/:id` | optional | `200 { "lesson": Lesson }`. |
 | `PATCH /lessons/:id` | auth, author only | Any subset of lesson input (send `null` to clear `code`, `link` or `quiz`) → `200 { "lesson": Lesson }`. Changing `quiz` clears everyone's earlier answers to it. An empty body is a `400`; a non-author gets `403`. |
-| `DELETE /lessons/:id` | auth, author only | `204`. Also deletes everyone's review cards and quiz answers for it. A non-author gets `403`. |
+| `DELETE /lessons/:id` | auth, author only | `204`. Also deletes everyone's review cards and quiz answers for it, and takes it out of every deck. A non-author gets `403`. |
 | `POST /lessons/:id/quiz/answer` | optional | Check an answer outside the review queue (below). |
 
 ### `POST /lessons/:id/quiz/answer` (optional)
@@ -259,6 +260,56 @@ otherwise it reveals the answer (as in the quiz answer route). A quiz answer als
 Errors: `400` for a bad or missing grade, both a grade and an answer, a quiz answer on a lesson with no quiz,
 or the wrong answer type; `409 NOT_DUE` when `dueAt` is still in the future, or when a concurrent
 submit already answered this due card (each due card is answered once).
+
+## Decks
+
+A deck is a named, ordered collection of up to 50 lessons, by anyone, that one user curates.
+Anyone can open a deck and remember all of its lessons in one tap.
+
+**Deck**:
+
+```json
+{
+  "id": "…",
+  "title": "Git rescue kit",
+  "description": "For the moment you think you just lost a day of work.",
+  "emoji": "🛟",
+  "color": "clay",
+  "owner": { "id": "…", "name": "Omar Haddad", "handle": "omar" },
+  "lessonIds": ["…", "…"],
+  "lessonCount": 5,
+  "rememberCount": 9,
+  "createdAt": "…", "updatedAt": "…",
+  "viewer": { "isOwner": false, "remembered": 2, "toRemember": 3 }
+}
+```
+
+- `lessonIds` is in deck order (the order lessons were added) and never lists deleted lessons.
+- `rememberCount` is the sum of the deck's lessons' `rememberCount`s; it ranks popular decks.
+- `viewer` is `null` when logged out. `remembered` is how many of the deck's lessons the viewer remembers;
+  `toRemember` is how many "Remember all" would add (not remembered yet and not the viewer's own).
+
+Deck input:
+
+| Field | Rule |
+|---|---|
+| `title` | required on create, 3-60 characters after trimming |
+| `description` | optional, at most 200 characters; `null` clears it. Default `""` |
+| `emoji` | optional, one emoji or character (a single grapheme, no spaces). Default `"📚"` |
+| `color` | optional cover colour, one of `ember`, `honey`, `sage`, `clay`, `plum`, `ink`. Default `"ember"` |
+
+| Route | Access | Response |
+|---|---|---|
+| `GET /decks/popular?limit=` | optional | `{ "items": [Deck] }`: decks with at least one lesson, highest `rememberCount` first (ties: more lessons, then newer). `limit` 1-20, default 6. |
+| `POST /decks` | auth | Deck input → `201 { "deck": Deck }`. |
+| `GET /decks/:id` | optional | `200 { "deck": Deck, "lessons": [Lesson] }`, lessons in deck order. |
+| `PATCH /decks/:id` | auth, owner only | Any subset of deck input → `200 { "deck": Deck }`. An empty body is a `400`. |
+| `DELETE /decks/:id` | auth, owner only | `204`. The lessons themselves stay. |
+| `POST /decks/:id/lessons` | auth, owner only | `{ "lessonId": "…" }` appends any lesson (yours or someone else's): `201 { "deck": Deck }`, or `200` unchanged when it is already in the deck. An unknown lesson is `404`; a full deck (50) is `400`. |
+| `DELETE /decks/:id/lessons/:lessonId` | auth, owner only | `204`, also when the lesson was not in the deck. |
+| `POST /decks/:id/remember` | auth | Remembers every deck lesson the viewer does not remember yet, skipping their own: `201 { "remembered": 3, "skipped": 2, "deck": Deck }`, or `200` with `remembered: 0` when there was nothing to add. New cards follow the usual [remember rule](#spaced-repetition-sm-2-rules). |
+
+A non-owner changing a deck gets `403`.
 
 ## Feed
 
@@ -366,7 +417,7 @@ for past answers. A card's `dueAt` is computed with the zone the user had when t
 ## Demo seed
 
 `npm run seed` (needs `MONGO_URI`) loads a demo community: 5 users, 26 lessons on JS, CSS, Git, DSA and career
-(quizzes on half of them), follows, and three weeks of simulated review history, so streaks, mastered lessons and
+(quizzes on half of them), 4 decks ("JavaScript gotchas", "Git rescue kit", "Career habits", "Interview patterns"), follows, and three weeks of simulated review history, so streaks, mastered lessons and
 due reviews exist on the first day. Before those three weeks, each demo user also gets review history back to twelve
 weeks ago in their own rhythm, so every profile's activity heatmap is filled in. Every demo user has at least one lesson
 without a quiz and one multiple-choice quiz due today, so both ways of answering on the Review screen (swipe or keys,
@@ -380,6 +431,6 @@ lettered choices) show up. Every demo user's password is **`sharewise123`**:
 | Sam Okafor | `sam@sharewise.dev` | `sam` |
 | Lena Vogel | `lena@sharewise.dev` | `lena` |
 
-The seed is idempotent: it upserts the demo users and lessons by email and title (restoring their seeded content and
+The seed is idempotent: it upserts the demo users, lessons and decks by email and title (restoring their seeded content and
 password), then rebuilds the demo users' follows, cards, quiz answers and review history relative to the current time.
 Running it again gives the same state. It does not touch other users or their data.

@@ -1,8 +1,10 @@
-import { HStack, Skeleton, Stack, Tag, Wrap } from "@chakra-ui/react";
+import { Box, HStack, Skeleton, Stack, Tag, Wrap } from "@chakra-ui/react";
 import { LuX } from "react-icons/lu";
 import { useSearchParams } from "react-router-dom";
-import { PageContainer, PageHeader } from "../components/ds/Page";
+import { PageContainer, PageHeader, SectionHeading } from "../components/ds/Page";
+import { DeckRow } from "../components/decks/DeckCard";
 import ExploreList from "../components/lessons/ExploreList";
+import { usePopularDecks } from "../hooks/useDecks";
 import { useTags } from "../hooks/useLessons";
 
 const TOPIC_COUNT = 12;
@@ -52,6 +54,18 @@ const TagFilter = ({ active, onSelect }) => {
   );
 };
 
+/** The most-remembered decks, one swipeable row. Hidden when there are none or it fails to load. */
+const PopularDecks = () => {
+  const { data: decks, isPending, isError } = usePopularDecks();
+  if (isError || (!isPending && decks.length === 0)) return null;
+  return (
+    <Box as='section'>
+      <SectionHeading>Popular decks</SectionHeading>
+      <DeckRow decks={decks} loading={isPending} label='Popular decks' />
+    </Box>
+  );
+};
+
 const ExplorePage = () => {
   const [params, setParams] = useSearchParams();
   const tag = params.get("tag") || null;
@@ -61,6 +75,7 @@ const ExplorePage = () => {
     <PageContainer>
       <PageHeader eyebrow='Discover' title='Explore' description={tag ? `Lessons tagged #${tag}, newest first.` : "Every lesson in the community, newest first."} />
       <Stack gap='5'>
+        {!tag && <PopularDecks />}
         <TagFilter active={tag} onSelect={select} />
         <ExploreList key={tag ?? "all"} tag={tag} />
       </Stack>

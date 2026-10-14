@@ -86,6 +86,16 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `FeedSkeleton`, `ListSkeleton`, `StatTilesSkeleton` | Loading placeholders that match the real layouts. |
 | `Logo`, `LogoMark`, `ColorModeButton` | Brand mark and the light/dark toggle. |
 
+### Deck components (`src/components/decks/`)
+
+| Component | What it does |
+|---|---|
+| `DeckCover` | A deck's emoji on its cover colour. The API's cover colours map to palettes in `deckStyle.js` (`ember` → `brand`, `ink` → `gray`, the rest by name). Cover colours are the user's choice and carry no review meaning. |
+| `DeckCard` / `DeckCardSkeleton` | A deck as a link tile: cover band, title, owner, lesson and remember counts, and "All yours" once the viewer remembers every lesson. |
+| `DeckRow` | Deck cards in one row that scrolls sideways inside its own box (snap per card). Used by Explore's "Popular decks" and the profile's "Decks". |
+| `DeckFormDialog` | Create or edit a deck: title, description, an emoji (quick picks or any typed emoji) and a cover colour. |
+| `AddToDeckButton` | "Add to deck" on the lesson page: toggles the lesson in each of your decks, or starts a new deck with it. |
+
 **Quiz shapes:** a lesson's optional `quiz` follows `backend/API.md`: `{ prompt, kind: "choice" | "text", choices? }`, plus `correctIndex` / `answer` only once the viewer may see them. Answers are graded on the server. `ReviewCard` and the lesson page handle both kinds; only multiple choice goes through `QuizChoices`.
 
 **Toasts:** call `toaster.success | error | warning | info({ title, description })` from `src/components/ui/toaster.js`. Toasts appear at the top, so they never cover the bottom nav. They render as a panel with a state-colored edge: sage, clay, honey, or ember for info.
@@ -95,13 +105,14 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | Path | Screen | Status |
 |---|---|---|
 | `/` | Feed | Real: lessons mixed with due reviews, infinite scroll; a welcome plus newest lessons when logged out |
-| `/explore` | Explore | Real, public; `?tag=` filters |
+| `/explore` | Explore | Real, public; `?tag=` filters; a "Popular decks" row when no tag is picked |
+| `/deck/:id` | Deck: its lessons in order, "Remember all", owner edit/delete and remove-from-deck | Real, public |
 | `/review` | Review queue | Real: one due card at a time, swipe or keys to grade, progress, the last card's result, done state |
 | `/stats` | Stats | Real data: your streak and progress, a twelve-week activity heatmap, top lessons and teachers, community totals |
-| `/u/:handle` | Profile with a twelve-week activity heatmap (`?tab=followers` or `following` picks the list) | Real data |
+| `/u/:handle` | Profile with a twelve-week activity heatmap and the user's decks above the tabs (`?tab=followers` or `following` picks the list) | Real data |
 | `/profile` | Redirects to the signed-in user's profile | Done |
 | `/settings/profile` | Edit my profile, log out, delete account | Real data |
-| `/lesson/:id` | Lesson detail | Real: remember toggle, inline quiz, author menu |
+| `/lesson/:id` | Lesson detail | Real: remember toggle, inline quiz, author menu, "Add to deck" |
 | `/lesson/:id/edit` | Edit lesson | Real, author only |
 | `/new` | Lesson composer | Real, with validation, a Write/Preview toggle for the markdown body, quiz builder and card preview |
 | `/login`, `/signup` | Auth (own layout, no nav). `?next=` is where to go afterwards | Real data |
@@ -109,7 +120,7 @@ Chakra defaults: `sm` 480, `md` 768, `lg` 1024, `xl` 1280. Write base styles for
 | `/post`, `/user-analytics`, `/post-analytics` | Classic screens | Real data, restyled |
 | `*` | Not found | Done |
 
-Only `/explore`, `/login` and `/signup` are public. Every other route sits inside `RequireAuth` (`src/components/auth/Guards.jsx`), which sends logged-out visitors to `/login?next=<path>`.
+Only `/explore`, `/deck/:id`, `/login` and `/signup` are public. Every other route sits inside `RequireAuth` (`src/components/auth/Guards.jsx`), which sends logged-out visitors to `/login?next=<path>`.
 
 Sample data lives in `src/sample/sampleData.js`. All of it is invented. Each feature slice should replace its imports from that file with real queries, and delete the file once nothing imports it.
 

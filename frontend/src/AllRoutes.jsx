@@ -6,6 +6,7 @@ import ProfilePage from "./pages/ProfilePage";
 import LessonPage from "./pages/LessonPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ExplorePage from "./pages/ExplorePage";
+import DeckPage from "./pages/DeckPage";
 import FeedPage from "./pages/FeedPage";
 import { EditLessonPage, NewLessonPage } from "./pages/NewLessonPage";
 import { useMe } from "./hooks/useAuth";
@@ -34,6 +35,7 @@ const AllRoutes = () => {
       <Route element={<Shell />}>
         {/* Public: logged-out visitors can browse Explore. */}
         <Route path='/explore' element={<ExplorePage />} />
+        <Route path='/deck/:id' element={<DeckPage />} />
 
         {/* Everything else needs an account; the guard sends visitors to /login and back. */}
         <Route element={<RequireAuth />}>

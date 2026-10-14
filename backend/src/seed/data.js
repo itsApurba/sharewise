@@ -312,4 +312,64 @@ const lessons = [
   },
 ];
 
-module.exports = { PASSWORD, users, lessons };
+// Decks are matched by (owner, title); `lessons` are seeded lesson titles, in deck order.
+const decks = [
+  {
+    owner: "maya",
+    title: "JavaScript gotchas",
+    description: "Small language details that bite in code review. Five cards, one coffee.",
+    emoji: "⚡",
+    color: "honey",
+    lessons: [
+      "?? is not ||",
+      "Optional chaining stops at the first nullish link",
+      "structuredClone makes real deep copies",
+      "Promise.allSettled never rejects",
+      "Array.prototype.at() reads from the end",
+    ],
+  },
+  {
+    owner: "omar",
+    title: "Git rescue kit",
+    description: "For the moment you think you just lost a day of work. You probably did not.",
+    emoji: "🛟",
+    color: "clay",
+    lessons: [
+      "git reflog is your undo history",
+      "Push with --force-with-lease, never plain --force",
+      "Amend your last commit, not a shared one",
+      "Find the commit that broke it with git bisect",
+      "git switch and git restore split up checkout",
+    ],
+  },
+  {
+    owner: "lena",
+    title: "Career habits",
+    description: "The quiet habits that make reviews, interviews and promotions easier.",
+    emoji: "🌱",
+    color: "sage",
+    lessons: [
+      "Keep a brag document",
+      "Timebox being stuck",
+      "Ask for feedback on something specific",
+      "Write the PR description for your reviewer",
+      "STAR keeps interview answers tight",
+    ],
+  },
+  {
+    owner: "priya",
+    title: "Interview patterns",
+    description: "Five patterns that cover most array and graph questions.",
+    emoji: "🧩",
+    color: "plum",
+    lessons: [
+      "Two pointers on a sorted array",
+      "A hash map turns 'seen before?' into O(1)",
+      "Sliding window for contiguous subarrays",
+      "Binary search works on answers, not just arrays",
+      "BFS finds shortest paths in unweighted graphs",
+    ],
+  },
+];
+
+module.exports = { PASSWORD, users, lessons, decks };

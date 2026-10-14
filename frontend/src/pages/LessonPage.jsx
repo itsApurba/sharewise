@@ -8,6 +8,7 @@ import { LessonCardSkeleton } from "../components/ds/LessonCard";
 import { PageContainer, PageHeader, SectionHeading } from "../components/ds/Page";
 import QuizChoices from "../components/ds/QuizChoices";
 import Surface from "../components/ds/Surface";
+import AddToDeckButton from "../components/decks/AddToDeckButton";
 import LessonItem from "../components/lessons/LessonItem";
 import useRememberToggle from "../components/lessons/useRememberToggle";
 import { toaster } from "../components/ui/toaster";
@@ -166,7 +167,14 @@ const LessonPage = () => {
 
   return (
     <PageContainer>
-      <PageHeader title='Lesson' backTo='/explore' backLabel='Explore' actions={lesson && <ShareButton lesson={lesson} />} />
+      <PageHeader title='Lesson' backTo='/explore' backLabel='Explore' actions={
+          lesson && (
+            <>
+              <AddToDeckButton lesson={lesson} />
+              <ShareButton lesson={lesson} />
+            </>
+          )
+        } />
       {isPending ? (
         <LessonCardSkeleton />
       ) : isError ? (

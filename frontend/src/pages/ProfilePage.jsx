@@ -1,17 +1,21 @@
 import { Badge, Box, Button, HStack, Heading, Icon, SimpleGrid, Stack, Text, Wrap } from "@chakra-ui/react";
 import { LuBookOpen, LuCalendar, LuCheck, LuFlame, LuPencil, LuPlus, LuTrophy, LuUserMinus, LuUserPlus } from "react-icons/lu";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { apiError } from "../api/client";
 import ActivityPanel from "../components/activity/ActivityPanel";
 import PeopleList from "../components/auth/PeopleList";
 import EmptyState from "../components/ds/EmptyState";
 import LessonCard from "../components/ds/LessonCard";
-import { PageContainer } from "../components/ds/Page";
+import { PageContainer, SectionHeading } from "../components/ds/Page";
 import { FeedSkeleton, StatTilesSkeleton } from "../components/ds/Skeletons";
 import StreakAvatar from "../components/ds/StreakAvatar";
 import Surface from "../components/ds/Surface";
+import { DeckRow } from "../components/decks/DeckCard";
+import DeckFormDialog from "../components/decks/DeckFormDialog";
 import { toaster } from "../components/ui/toaster";
 import { monthYear, relativeTime } from "../lib/relativeTime";
+import { useUserDecks } from "../hooks/useDecks";
 import { useFollow, useFollowers, useFollowing, useProfile, useUnfollow, useUserLessons } from "../hooks/useUsers";
 
 const TABS = ["lessons", "followers", "following"];
@@ -118,6 +122,39 @@ const ProfileLessons = ({ handle, isSelf, name }) => {
         </Button>
       )}
     </Stack>
+  );
+};
+
+/** The user's decks as one row; for your own profile, a "New deck" action (and a nudge when you have none). */
+const ProfileDecks = ({ handle, isSelf }) => {
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
+  const { data, isPending, isError } = useUserDecks(handle);
+  const decks = data?.pages.flatMap((page) => page.items) ?? [];
+  if (isError || (!isPending && decks.length === 0 && !isSelf)) return null;
+  return (
+    <Box as='section'>
+      <SectionHeading
+        action={
+          isSelf && (
+            <Button size='sm' rounded='full' variant='outline' colorPalette='gray' onClick={() => setCreating(true)}>
+              <LuPlus />
+              New deck
+            </Button>
+          )
+        }
+      >
+        Decks
+      </SectionHeading>
+      {!isPending && decks.length === 0 ? (
+        <Text fontSize='sm' color='fg.muted'>
+          Group lessons into a deck so anyone can remember them all in one tap.
+        </Text>
+      ) : (
+        <DeckRow decks={decks} loading={isPending} showOwner={false} label='Decks' />
+      )}
+      {isSelf && <DeckFormDialog open={creating} onOpenChange={setCreating} onSaved={(deck) => navigate(`/deck/${deck.id}`)} />}
+    </Box>
   );
 };
 
@@ -241,6 +278,8 @@ const ProfilePage = () => {
         </Stack>
 
         <ActivityPanel handle={user.handle} />
+
+        <ProfileDecks handle={user.handle} isSelf={isSelf} />
 
         <SimpleGrid columns={3} gap='3' role='group' aria-label='Show lessons, followers or following'>
           <CountTile label='Lessons' value={counts.lessons} active={tab === "lessons"} onClick={() => setTab("lessons")} />
