@@ -8,7 +8,7 @@ const nextPage = (last) => (last.hasMore ? last.page + 1 : undefined);
 /** Every query whose lessons or counts change when a lesson, remember or quiz answer changes. */
 const invalidateLessonData = (queryClient, id) =>
   Promise.all(
-    [["feed"], ["explore"], ["tags"], ["reviews"], ["profile"], ["stats"], ...(id ? [["lesson", id]] : [])].map((queryKey) =>
+    [["feed"], ["explore"], ["tags"], ["reviews"], ["profile"], ["stats"], ["decks"], ["deck"], ...(id ? [["lesson", id]] : [])].map((queryKey) =>
       queryClient.invalidateQueries({ queryKey })
     )
   );
