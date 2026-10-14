@@ -72,4 +72,7 @@ export const apiError = (error) => {
   };
 };
 
+/** The API's error message (or a generic one) for a failed request. */
+export const errorMessage = (error) => error?.response?.data?.error?.message ?? "Something went wrong. Try again.";
+
 export default client;

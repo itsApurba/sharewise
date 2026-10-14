@@ -55,17 +55,10 @@ export const SAMPLE_LESSONS = [
 ];
 
 /** Reviews due today, covering each quiz shape and several review states, so every card variant is visible. */
-export const SAMPLE_REVIEWS = [
-  { lesson: SAMPLE_LESSONS[0], state: "due", stepLabel: "2nd review · after 3 days" },
-  { lesson: SAMPLE_LESSONS[1], state: "forgot", stepLabel: "Forgot last time · back after 1 day" },
-  { lesson: SAMPLE_LESSONS[2], state: "due", stepLabel: "1st review · after 1 day" },
-  { lesson: SAMPLE_LESSONS[3], state: "mastered", stepLabel: "5th review · after 1 month" },
-];
-
 export const SAMPLE_STATS = {
   streak: 6,
   mastered: 14,
-  dueToday: SAMPLE_REVIEWS.length,
+  dueToday: 2,
   retention: "86%",
   topLessons: SAMPLE_LESSONS.map(({ id, title, author, rememberCount }) => ({ id, title, author, rememberCount })),
   topAuthors: [

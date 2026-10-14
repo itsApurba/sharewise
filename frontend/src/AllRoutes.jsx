@@ -1,23 +1,30 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import PostForm from "./components/PostForm";
-import PostsList from "./components/PostsList";
 import UserAnalytics from "./components/UserAnalytics";
 import PostAnalytics from "./components/PostAnalytics";
 import AppShell from "./components/ds/AppShell";
 import { PageContainer } from "./components/ds/Page";
-import ExplorePage from "./pages/ExplorePage";
 import ReviewPage from "./pages/ReviewPage";
 import StatsPage from "./pages/StatsPage";
 import ProfilePage from "./pages/ProfilePage";
 import LessonPage from "./pages/LessonPage";
-import NewLessonPage from "./pages/NewLessonPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import ExplorePage from "./pages/ExplorePage";
+import FeedPage from "./pages/FeedPage";
+import { EditLessonPage, NewLessonPage } from "./pages/NewLessonPage";
+import { useMe } from "./hooks/useAuth";
+import { useDueReviews } from "./hooks/useReviews";
 import { AuthLayout, LoginPage, SignupPage } from "./pages/AuthPages";
 import WelcomePage from "./pages/WelcomePage";
 import EditProfilePage from "./pages/EditProfilePage";
 import { RequireAuth } from "./components/auth/Guards";
-import { useMe } from "./hooks/useAuth";
-import { SAMPLE_REVIEWS } from "./sample/sampleData";
+
+/** The app frame with the live due count on the Review tab. */
+const Shell = () => {
+  const { data: me } = useMe();
+  const { data: due } = useDueReviews({ enabled: Boolean(me) });
+  return <AppShell badges={{ review: me ? (due?.total ?? 0) : 0 }} />;
+};
 
 /** `/profile` (the Profile nav item before `me` loads) goes to the signed-in user's page. */
 const MyProfileRedirect = () => {
@@ -28,20 +35,20 @@ const MyProfileRedirect = () => {
 const AllRoutes = () => {
   return (
     <Routes>
-      {/* Sample due count until the review queue API lands. */}
-      <Route element={<AppShell badges={{ review: SAMPLE_REVIEWS.length }} />}>
+      <Route element={<Shell />}>
         {/* Public: logged-out visitors can browse Explore. */}
         <Route path='/explore' element={<ExplorePage />} />
 
         {/* Everything else needs an account; the guard sends visitors to /login and back. */}
         <Route element={<RequireAuth />}>
-          <Route path='/' element={<PostsList />} />
+          <Route path='/' element={<FeedPage />} />
           <Route path='/review' element={<ReviewPage />} />
           <Route path='/stats' element={<StatsPage />} />
           <Route path='/profile' element={<MyProfileRedirect />} />
           <Route path='/u/:handle' element={<ProfilePage />} />
           <Route path='/settings/profile' element={<EditProfilePage />} />
           <Route path='/lesson/:id' element={<LessonPage />} />
+          <Route path='/lesson/:id/edit' element={<EditLessonPage />} />
           <Route path='/new' element={<NewLessonPage />} />
 
           {/* Classic screens, kept until the feature slices replace them. */}

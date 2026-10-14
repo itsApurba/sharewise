@@ -1,39 +1,68 @@
-import { Input, InputGroup, Stack, Tag, Wrap } from "@chakra-ui/react";
-import { useState } from "react";
-import { LuSearch } from "react-icons/lu";
-import LessonCard from "../components/ds/LessonCard";
-import { PageContainer, PageHeader, PreviewNotice } from "../components/ds/Page";
-import { toaster } from "../components/ui/toaster";
-import { SAMPLE_LESSONS } from "../sample/sampleData";
+import { HStack, Skeleton, Stack, Tag, Wrap } from "@chakra-ui/react";
+import { LuX } from "react-icons/lu";
+import { useSearchParams } from "react-router-dom";
+import { PageContainer, PageHeader } from "../components/ds/Page";
+import ExploreList from "../components/lessons/ExploreList";
+import { useTags } from "../hooks/useLessons";
 
-const topics = ["javascript", "css", "productivity", "arrays", "layout"];
+const TOPIC_COUNT = 12;
+
+/** Tag chips that filter the list; the active tag lives in ?tag= so it can be linked. */
+const TagFilter = ({ active, onSelect }) => {
+  const { data: tags, isPending } = useTags();
+  if (isPending) {
+    return (
+      <HStack gap='2' aria-hidden>
+        {[16, 12, 20, 14].map((w) => (
+          <Skeleton key={w} h='8' w={w} rounded='full' />
+        ))}
+      </HStack>
+    );
+  }
+  const shown = (tags ?? []).slice(0, TOPIC_COUNT);
+  if (active && !shown.some((t) => t.tag === active)) shown.unshift({ tag: active, lessons: null });
+  return (
+    <Wrap gap='2' role='group' aria-label='Filter by tag'>
+      {shown.map(({ tag, lessons }) => {
+        const selected = tag === active;
+        return (
+          <Tag.Root
+            key={tag}
+            asChild
+            size='lg'
+            variant={selected ? "solid" : "outline"}
+            colorPalette={selected ? "brand" : "gray"}
+            rounded='full'
+            cursor='pointer'
+          >
+            <button type='button' aria-pressed={selected} onClick={() => onSelect(selected ? null : tag)}>
+              <Tag.Label>#{tag}</Tag.Label>
+              {selected ? (
+                <Tag.EndElement>
+                  <LuX />
+                </Tag.EndElement>
+              ) : (
+                lessons !== null && <Tag.EndElement color='fg.muted' fontSize='xs'>{lessons}</Tag.EndElement>
+              )}
+            </button>
+          </Tag.Root>
+        );
+      })}
+    </Wrap>
+  );
+};
 
 const ExplorePage = () => {
-  const [remembered, setRemembered] = useState({});
-  const toggle = (id) => {
-    const next = !remembered[id];
-    setRemembered({ ...remembered, [id]: next });
-    if (next) toaster.success({ title: "Saved to remember", description: "It comes back for review tomorrow." });
-  };
+  const [params, setParams] = useSearchParams();
+  const tag = params.get("tag") || null;
+  const select = (next) => setParams(next ? { tag: next } : {}, { replace: true });
 
   return (
     <PageContainer>
-      <PageHeader eyebrow='Discover' title='Explore' description='Lessons from people you do not follow yet.' />
-      <PreviewNotice />
-      <Stack gap='4'>
-        <InputGroup startElement={<LuSearch />}>
-          <Input placeholder='Search lessons and tags' rounded='full' bg='bg.panel' aria-label='Search lessons' />
-        </InputGroup>
-        <Wrap gap='2'>
-          {topics.map((topic) => (
-            <Tag.Root key={topic} size='lg' variant='outline' colorPalette='gray' rounded='full'>
-              <Tag.Label>#{topic}</Tag.Label>
-            </Tag.Root>
-          ))}
-        </Wrap>
-        {SAMPLE_LESSONS.map((lesson) => (
-          <LessonCard key={lesson.id} lesson={lesson} to={`/lesson/${lesson.id}`} remembered={!!remembered[lesson.id]} onRemember={() => toggle(lesson.id)} />
-        ))}
+      <PageHeader eyebrow='Discover' title='Explore' description={tag ? `Lessons tagged #${tag}, newest first.` : "Every lesson in the community, newest first."} />
+      <Stack gap='5'>
+        <TagFilter active={tag} onSelect={select} />
+        <ExploreList key={tag ?? "all"} tag={tag} />
       </Stack>
     </PageContainer>
   );

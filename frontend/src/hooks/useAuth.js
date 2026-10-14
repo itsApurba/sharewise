@@ -25,6 +25,7 @@ export const useMe = () =>
         throw error;
       }
     },
+    retry: false,
     staleTime: 60_000,
     gcTime: Infinity,
   });
