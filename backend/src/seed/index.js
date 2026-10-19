@@ -185,7 +185,11 @@ async function seed({ now = new Date() } = {}) {
     logs.length && ReviewLog.collection.insertMany(logs),
     attempts.length && QuizAttempt.collection.insertMany(attempts),
   ]);
+  // Register positively established IDs for safe future restoration, including
+  // deleted demo accounts. This does not change the seed's dataset.
+  await require("../api/services/demoRestore").registerSeed({ users, lessons, now });
   return { users: ids.length, lessons: lessons.length, decks, follows: follows.length, reviews: cards.length, reviewLogs: logs.length };
 }
 
-module.exports = { seed };
+// The restore service uses the same fixture replay, not a second demo dataset.
+module.exports = { seed, simulate, history };

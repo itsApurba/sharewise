@@ -14,6 +14,7 @@ import { useDueReviews } from "./hooks/useReviews";
 import { AuthLayout, LoginPage, SignupPage } from "./pages/AuthPages";
 import WelcomePage from "./pages/WelcomePage";
 import EditProfilePage from "./pages/EditProfilePage";
+import RestorePage from "./pages/RestorePage";
 import { RequireAuth } from "./components/auth/Guards";
 
 /** The app frame with the live due count on the Review tab. */
@@ -45,6 +46,7 @@ const AllRoutes = () => {
           <Route path='/profile' element={<MyProfileRedirect />} />
           <Route path='/u/:handle' element={<ProfilePage />} />
           <Route path='/settings/profile' element={<EditProfilePage />} />
+          <Route path='/restore' element={<RestorePage />} />
           <Route path='/lesson/:id' element={<LessonPage />} />
           <Route path='/lesson/:id/edit' element={<EditLessonPage />} />
           <Route path='/new' element={<NewLessonPage />} />

@@ -16,7 +16,7 @@ Log in with any seeded demo account. Every account uses the password **`sharewis
 | Sam Okafor | `sam@sharewise.dev` | `sharewise123` | A light reviewer with CSS lessons. Open Lena's "Career habits" deck and tap **Remember all** to fill his queue in one go. |
 | Lena Vogel | `lena@sharewise.dev` | `sharewise123` | Her older review history is weekdays only, which shows on her heatmap. Her career lessons include text-answer quizzes. She curates the "Career habits" deck. |
 
-Anyone can also sign up for a new account; after sign-up Sharewise suggests people to follow. `npm run seed` resets the demo accounts locally (see [Getting started](#getting-started)).
+Anyone can also sign up for a new account; after sign-up Sharewise suggests people to follow. Signed in with a demo account, visit **`/restore`** and confirm **Restore demo data** to reset the demo community. Opening the page alone changes nothing. `npm run seed` initializes the demo accounts locally (see [Getting started](#getting-started)).
 
 | Lesson with code (desktop) | Stats (desktop) |
 | --- | --- |
@@ -163,6 +163,21 @@ cd backend
 npm install
 MONGODB_URI='mongodb+srv://user:pass@cluster.mongodb.net/sharewise' npm run seed
 ```
+
+### Hourly demo restoration (no Vercel paid cron required)
+
+The feature uses MongoDB transactions (Atlas or a local replica set). Both `/restore` and the scheduler use the same atomic restore service. It reuses `backend/src/seed/data.js` and the seed's review simulator, retaining registered user/lesson/deck IDs. Demo profiles, authored lessons, owned decks, outgoing follows, cards, quiz answers and review logs are restored; extra demo-owned records are removed. Other users' records are never cascaded or reset, including their references to demo lessons. Removing an extra demo lesson can leave those references pointing to a removed lesson; preservation here means retaining other users' reference rows, not rewriting their collections. Password hashes and existing sessions are preserved.
+
+`npm run seed` now registers demo identities. Existing deployments can bootstrap this private registry automatically **only** when all five immutable fixture emails and their seeded passwords are present. If identity cannot be established, restoration fails closed with `409 DEMO_IDENTITY`; do not run a destructive seed against live data to work around it. Resolve the missing identity/handle collision explicitly. The registry also keeps the original password hash for recreating a deleted demo account; protect it like the users collection. Fixture emails are reserved from public sign-up.
+
+To enable the hourly schedule after deploying the backend:
+
+1. Set backend **`CRON_SECRET`** to a long random secret (separate from `JWT_SECRET`).
+2. Set GitHub Actions repository variable **`SHAREWISE_DEMO_RESTORE_URL`** to `https://<backend>/api/restore/hourly`.
+3. Set Actions repository secret **`SHAREWISE_DEMO_RESTORE_SECRET`** to that same `CRON_SECRET` value.
+4. Enable `.github/workflows/restore-demo.yml` on the default branch. It runs at minute 17 every hour and can also be dispatched manually. Missing configuration fails visibly. No deployment or scheduler configuration is performed by the app itself.
+
+GitHub Actions works with either Vercel plan (Hobby's native cron cannot run hourly). Scheduled jobs may be delayed by GitHub and may be disabled after prolonged repository inactivity; monitor the workflow. The authenticated endpoint checks at most once per UTC hour, including across serverless instances. It fingerprints only the five indexed demo ownership slices, detecting edits, deletions and additions even outside the API; no database-wide scan or process-local timer is used. When unchanged it writes only small scheduler metadata, not demo data. When changed it rebuilds the original fixtures relative to now inside one transaction. The last restored dates stay put until data changes. Concurrent restores serialize and become no-ops after the winner commits. Do not manually edit the private `demostates` registry.
 
 ### Frontend project (Root Directory `frontend`)
 
