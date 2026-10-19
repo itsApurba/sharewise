@@ -18,5 +18,6 @@ router.use("/reviews", reviewRoutes);
 router.use("/feed", feedRoutes);
 router.use("/analytics", analyticsRoutes);
 router.use("/decks", deckRoutes);
+router.use("/restore", require("./restore.route"));
 
 module.exports = router;

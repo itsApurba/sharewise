@@ -433,4 +433,13 @@ lettered choices) show up. Every demo user's password is **`sharewise123`**:
 
 The seed is idempotent: it upserts the demo users, lessons and decks by email and title (restoring their seeded content and
 password), then rebuilds the demo users' follows, cards, quiz answers and review history relative to the current time.
-Running it again gives the same state. It does not touch other users or their data.
+Running it again gives the same state. It does not touch other users or their data. It also registers the demo IDs for future restoration (including deleted accounts). Unlike the restoration endpoint, the explicit seed command resets demo passwords.
+
+### Demo restoration
+
+- **`POST /api/restore`** — requires a seeded demo account's bearer token and no body/query options. Restores all five demo accounts' fixture data, never an arbitrary selected user. Returns `{ "restored": true, "restoredAt": "…" }`, or `{ "restored": false, "reason": "unchanged", "restoredAt": "…" }`. Frontend `/restore` requires login and an explicit button press; GET does not restore anything.
+- **`GET /api/restore/hourly`** — scheduler-only mutation, authenticated with `Authorization: Bearer <CRON_SECRET>` (not a user token), and never cached. Fails with `401` when absent, incorrect or unconfigured. Uses the same service, but checks at most once per UTC hour and may return `{ "restored": false, "reason": "not-due" }`. GitHub Actions supplies the hourly trigger; configuration is in the README.
+
+The service uses the original seed fixtures and review replay. It fingerprints only indexed demo ownership slices; unchanged data is not rewritten. Dirty data is restored atomically with MongoDB transactions (Atlas/replica set required), retaining baseline user/lesson/deck IDs and refreshing fixture dates relative to the restoration. Credentials and tokens are not reset; a deleted demo user is recreated with its registered ID and original password hash. Only demo-authored lessons, demo-owned decks, outgoing follows and demo users' cards/history/quiz attempts can be deleted or rewritten. Incoming real-user follows, cards, history, quiz answers and decks are never cascaded, even when they reference a removed extra demo lesson.
+
+The private `demostates` registry is initialized by the seed. For an older deployment without a registry, the first restoration requires all five fixture emails and their known seed password before recording identities. Missing or conflicting identity, or a baseline handle/ID now owned by a non-demo account, returns `409 DEMO_IDENTITY` without changing demo data. Seed emails cannot be claimed through public sign-up. Concurrent restores retry against the completed winner; a failed transaction leaves the old dataset intact.

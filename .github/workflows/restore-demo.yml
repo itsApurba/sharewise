@@ -1,0 +1,24 @@
+name: Restore Sharewise demo
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: sharewise-demo-restoration
+  cancel-in-progress: false
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check and restore changed demo data
+        env:
+          RESTORE_URL: ${{ vars.SHAREWISE_DEMO_RESTORE_URL }}
+          RESTORE_SECRET: ${{ secrets.SHAREWISE_DEMO_RESTORE_SECRET }}
+        run: |
+          test -n "$RESTORE_URL" || { echo 'Configure SHAREWISE_DEMO_RESTORE_URL'; exit 1; }
+          test -n "$RESTORE_SECRET" || { echo 'Configure SHAREWISE_DEMO_RESTORE_SECRET'; exit 1; }
+          case "$RESTORE_URL" in https://*/api/restore/hourly) ;; *) echo 'Expected an HTTPS /api/restore/hourly URL'; exit 1;; esac
+          curl --fail --show-error --silent --max-time 120 --retry 2 \
+            --header "Authorization: Bearer $RESTORE_SECRET" "$RESTORE_URL"

@@ -41,6 +41,11 @@ exports.signup = async (req, res) => {
   for (const key of ["bio", "timezone"]) if (!profile[key]) delete profile[key];
   if (body.email !== undefined && typeof body.email !== "string") fields.email = "email must be a string";
   const email = typeof body.email === "string" ? body.email : undefined;
+  // These immutable fixture identities are reserved, including after deletion.
+  // Otherwise a signup could claim demo ownership before its next restoration.
+  if (require("../services/demoRestore").isDemoEmail(typeof email === "string" ? email.trim().toLowerCase() : "")) {
+    fields.email = "This email is reserved for the demo community";
+  }
   const { password } = body;
   if (typeof password !== "string" || password.length < PASSWORD[0] || password.length > PASSWORD[1]) {
     fields.password = `Password must be ${PASSWORD[0]}-${PASSWORD[1]} characters`;
